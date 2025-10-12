@@ -29,17 +29,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Bootstrap Carousels initialization
-    ['#carouselExampleIndicators', '#carouselExampleSetSectionIndicators'].forEach(id => {
+   // ✅ Initialize all Bootstrap carousels (including TruPath hero)
+    ['#trupathCarousel', '#carouselExampleSetSectionIndicators'].forEach(id => {
         const carouselElement = document.querySelector(id);
         if (carouselElement) {
-            new bootstrap.Carousel(carouselElement, {
-                interval: 3000,
-                wrap: true,
-                pause: false
-            });
+        new bootstrap.Carousel(carouselElement, {
+            interval: 4000, // Slide every 4s for smoother transitions
+            wrap: true,     // Loop back to first slide
+            pause: false,   // Keep autoplay even on hover
+            ride: 'carousel'
+        });
         }
-    });
+    });  
 
     // Example helper usage (make sure loadSetSectionImg exists)
     if (typeof loadSetSectionImg === 'function') {
@@ -199,7 +200,7 @@ function submitForm(data) {
     button.disabled = true;
     showToast("Please wait...");
 
-    fetch("https://api.trupathservices.com/contact", {
+    fetch("http://localhost:4000/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
