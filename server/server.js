@@ -59,7 +59,7 @@ app.post("/contact", async (req, res) => {
 
     try {
         await transporter.sendMail({
-            from: `"SkillQuestX Contact Form" <${process.env.MAIL_USER}>`,
+            from: `"TruPath Services Contact Form" <${process.env.MAIL_USER}>`,
             to: process.env.MAIL_USER,
             replyTo: `${name} <${email}>`,
             subject: "New Contact Form Submission",
@@ -245,15 +245,15 @@ app.get('/welcome', (req, res) => {
         animation: float 6s ease-in-out infinite;
         }
 
-        /* Skill Icons (Themed for Medical Coding) */
-        .skill-icons {
+        /* TruPath Icons (Themed for Medical Coding) */
+        .TruPath-icons {
         display: flex;
         justify-content: center;
         gap: 1rem;
         margin-top: 2rem;
         }
 
-        .skill-icon {
+        .TruPath-icon {
         width: 40px;
         height: 40px;
         background: rgba(255, 255, 255, 0.12);
@@ -269,7 +269,7 @@ app.get('/welcome', (req, res) => {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .skill-icon:hover {
+        .TruPath-icon:hover {
         transform: scale(1.15);
         box-shadow: 0 0 18px rgba(78, 205, 196, 0.8);
         }
@@ -329,12 +329,12 @@ app.get('/welcome', (req, res) => {
         Discover Medical Coding Excellence
         </a>
 
-        <div class="skill-icons">
-        <div class="skill-icon" title="Medical Expertise">🩺</div>
-        <div class="skill-icon" title="Data Accuracy">💾</div>
-        <div class="skill-icon" title="Compliance">🔍</div>
-        <div class="skill-icon" title="Analytics">📊</div>
-        <div class="skill-icon" title="Certified Coders">🧠</div>
+        <div class="TruPath-icons">
+        <div class="TruPath-icon" title="Medical Expertise">🩺</div>
+        <div class="TruPath-icon" title="Data Accuracy">💾</div>
+        <div class="TruPath-icon" title="Compliance">🔍</div>
+        <div class="TruPath-icon" title="Analytics">📊</div>
+        <div class="TruPath-icon" title="Certified Coders">🧠</div>
         </div>
     </div>
 
