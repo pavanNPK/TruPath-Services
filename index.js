@@ -128,22 +128,49 @@ document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
         document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
         this.classList.add("active");
 
-        const targetId = this.getAttribute("href").slice(1);
-        const target = document.getElementById(targetId);
-        if (target) {
-            // Get the actual header height dynamically
-            const header = document.querySelector('.dynamic-header');
-            const headerHeight = header ? header.offsetHeight : 80;
-            const yOffset = target.getBoundingClientRect().top + window.scrollY - headerHeight;
-            window.scrollTo({ top: yOffset, behavior: "smooth" });
-        }
-
+        // Close hamburger menu first if it's open
         const navbarCollapse = document.getElementById("navbarNav");
-        const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
-        if (bsCollapse) bsCollapse.hide();
-
         const toggler = document.querySelector('.custom-toggler');
-        if (toggler && toggler.classList.contains('open')) toggler.classList.remove('open');
+        
+        // Check if menu is currently open (has 'show' class)
+        const isMenuOpen = navbarCollapse && navbarCollapse.classList.contains('show');
+        
+        if (isMenuOpen) {
+            // Close the menu first
+            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse) || new bootstrap.Collapse(navbarCollapse, { toggle: false });
+            bsCollapse.hide();
+            
+            // Reset hamburger toggler state
+            if (toggler && toggler.classList.contains('open')) {
+                toggler.classList.remove('open');
+            }
+            
+            // Wait for menu to close before scrolling
+            navbarCollapse.addEventListener('hidden.bs.collapse', function scrollAfterClose() {
+                const targetId = link.getAttribute("href").slice(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    // Get the actual header height dynamically
+                    const header = document.querySelector('.dynamic-header');
+                    const headerHeight = header ? header.offsetHeight : 80;
+                    const yOffset = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+                    window.scrollTo({ top: yOffset, behavior: "smooth" });
+                }
+                // Remove this event listener after use
+                navbarCollapse.removeEventListener('hidden.bs.collapse', scrollAfterClose);
+            }, { once: true });
+        } else {
+            // Menu is already closed, scroll immediately
+            const targetId = this.getAttribute("href").slice(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+                // Get the actual header height dynamically
+                const header = document.querySelector('.dynamic-header');
+                const headerHeight = header ? header.offsetHeight : 80;
+                const yOffset = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+                window.scrollTo({ top: yOffset, behavior: "smooth" });
+            }
+        }
     });
 });
 
@@ -256,10 +283,10 @@ function showToast(message, duration = 3000) {
 
 // ==================== Service Cards ====================
 const serviceCardsData = [
-    { image: "./assets/images/services/hcc.svg", title: "HCC Risk Adjustment Coding", description: "Capture patient health conditions accurately to support fair reimbursement and strengthen population health management." },
-    { image: "./assets/images/services/outpatient.svg", title: "Outpatient & Ambulatory Coding", description: "Efficient coding for ED, E&M, and clinic visits that reduces denials and accelerates payments." },
+    { image: "./assets/images/services/ai.svg", title: "AR Calling Services", description: "Accelerate collections and reduce aging with proactive follow-up:", subDescription: "Timely outreach to payers for unpaid claims, Customized strategies for commercial and government payers, Improved cash flow and reduced denial rates, Transparent reporting and escalation protocols" },
+    { image: "./assets/images/services/outpatient.svg", title: "Medical Coding (Outpatient & Inpatient)", description: "Precise coding for all care settings:", subDescription: "E&M, ED, Clinic visits, Inpatient DRG assignment, Surgical and specialty coding, Risk adjustment and HCC coding"},
     { image: "./assets/images/services/cdi.svg", title: "Clinical Documentation Improvement (CDI)", description: "Enhance your clinical records for compliance, accuracy, and financial performance.", subTitle: "Our CDI programs help you", subDescription: "Capture severity of illness and risk of mortality more effectively, Support proper DRG assignment, Improve CMS compliance and payer reporting, Reduce audit risk while boosting quality scores" },
-    { image: "./assets/images/services/inpatient.svg", title: "Inpatient DRG Coding", description: "Specialized expertise in inpatient hospital stays—ensuring correct DRG assignment, compliance, and optimized revenue." },
+    { image: "./assets/images/services/hcc.svg", title: "HCC Risk Adjustment Coding", description: "Capture patient health conditions accurately to support fair reimbursement and strengthen population health management." },
     { image: "./assets/images/services/payment.svg", title: "Payment Integrity Services", description: "DRG and APC validation services that prevent claim errors, reduce payment disputes, and secure accurate reimbursement." }
 ];
 

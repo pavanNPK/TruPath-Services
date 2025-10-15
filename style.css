@@ -191,10 +191,30 @@ header.sticky-top {
 .btn-primary {
     background-color: #051C3B;
     border-color: #051C3B;
+    color: #fff;
+    transition: all 0.3s ease;
 }
 .btn-primary:hover {
-    background-color: rgba(85, 37, 198, 0.50);
-    border-color: rgba(85, 37, 198, 0.50);
+    background-color: #051C3B;
+    border-color: #051C3B;
+    color: #fff;
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(5, 28, 59, 0.3);
+}
+.btn-primary:active {
+    background-color: #051C3B;
+    border-color: #051C3B;
+    color: #fff;
+    opacity: 0.8;
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(5, 28, 59, 0.2);
+}
+.btn-primary:focus {
+    background-color: #051C3B;
+    border-color: #051C3B;
+    color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(5, 28, 59, 0.25);
 }
 
 /* Hamburger Button */
@@ -348,12 +368,12 @@ header.sticky-top {
     z-index: 1000;
 }
 
-#aboutUsSection, #ourServicesSection, #pricingSection, #whyChooseUsSection {
+#aboutUsSection, #ourServicesSection, #pricingSection, #whyChooseUsSection, #careersSection {
     position: relative;
     overflow: hidden;
 }
 
-#aboutUsSection::before, #ourServicesSection::before, #pricingSection::before, #whyChooseUsSection::before {
+#aboutUsSection::before, #ourServicesSection::before, #pricingSection::before, #whyChooseUsSection::before, #careersSection::before {
     position: absolute;
     top: 2%;
     left: 6%;
@@ -388,6 +408,9 @@ header.sticky-top {
   }  
   #whyChooseUsSection::before {
     content: "Why TruPath?";
+  }
+  #careersSection::before {
+    content: "Join us";
   }
   .aboutUs-logo {
     width: 5rem;
@@ -814,6 +837,170 @@ body {
 .contact-logo-img:hover {
   transform: scale(1.05);
 }
+
+/* ============================= */
+/*      CAREERS SECTION        */
+/* ============================= */
+.career-item {
+  padding: 0.5rem 0;
+}
+
+.career-icon img {
+  width: 30px;  
+  height: 30px;
+  object-fit: contain;
+  margin-top: 2px; 
+}
+
+.career-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; /* Allow flex item to shrink */
+}
+
+.career-title {
+  font-size: 1rem;
+  color: #1b1b1b;
+  line-height: 1.3;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.career-subtext {
+  font-size: 0.9rem;
+  color: #666;
+  small {
+    color: #444;
+  }
+
+  img {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Mobile responsive improvements for careers section */
+@media (max-width: 768px) {
+  .career-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .career-icon {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    align-self: flex-start;
+    order: -1; /* Move icon to top */
+  }
+  
+  .career-content {
+    width: 100%;
+    flex: none;
+  }
+  
+  .career-title {
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  .career-subtext {
+    font-size: 0.9rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .career-subtext .d-flex {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  /* Accordion button adjustments for mobile */
+  .accordion-button {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+  }
+  
+  .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(5, 28, 59, 0.25);
+  }
+  
+  /* Ensure accordion content doesn't overflow */
+  .accordion-body {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .accordion-body h5, .accordion-body h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .accordion-body ul {
+    margin-bottom: 0.75rem;
+  }
+  
+  .accordion-body li {
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 576px) {
+  .career-title {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+  
+  .career-subtext {
+    font-size: 0.9rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  
+  .career-icon img {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .accordion-button {
+    padding: 0.6rem 0.4rem;
+  }
+  
+  .accordion-body {
+    padding: 0.6rem 0.4rem;
+  }
+  
+  .accordion-body h5, .accordion-body h6 {
+    font-size: 0.95rem;
+  }
+  
+  .accordion-body li {
+    font-size: 0.85rem;
+    line-height: 1.25;
+  }
+}
+
+
+
+
 
 /* Responsive behavior */
 @media (max-width: 991px) {
