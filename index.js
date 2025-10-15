@@ -200,7 +200,7 @@ function submitForm(data) {
     button.disabled = true;
     showToast("Please wait...");
 
-    fetch("http://localhost:4000/contact", {
+    fetch("https://api.trupathservices.com/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
