@@ -363,7 +363,7 @@ app.get('/welcome', (req, res) => {
 });
 
 // Start server
-const port = process.env.APP_PORT || 4000;
+const port = process.env.APP_PORT || 3000;
 const host = process.env.APP_HOST || 'https://api.trupathservices.com';
 
 app.listen(port, () => {
