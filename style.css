@@ -154,6 +154,12 @@ header.dynamic-header.scrolled {
     background-color: #051C3B;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+/* Header background when hamburger menu is open */
+header.dynamic-header.menu-open {
+    background-color: #051C3B !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
 .brand-color, .brand-text-color {
     color: #051C3B !important;
 }

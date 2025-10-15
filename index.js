@@ -23,9 +23,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Hamburger toggler
     const toggler = document.querySelector(".custom-toggler");
+    const navbarCollapse = document.getElementById("navbarNav");
+    const header = document.querySelector('.dynamic-header');
+    
     if (toggler) {
         toggler.addEventListener("click", function () {
             this.classList.toggle("open");
+        });
+    }
+    
+    // Add header background when hamburger menu is open
+    if (navbarCollapse) {
+        navbarCollapse.addEventListener('show.bs.collapse', function () {
+            if (header) {
+                header.classList.add('menu-open');
+            }
+        });
+        
+        navbarCollapse.addEventListener('hide.bs.collapse', function () {
+            if (header) {
+                header.classList.remove('menu-open');
+            }
         });
     }
 
@@ -113,8 +131,10 @@ document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
         const targetId = this.getAttribute("href").slice(1);
         const target = document.getElementById(targetId);
         if (target) {
-            const offset = window.innerWidth < 992 ? 220 : 80;
-            const yOffset = target.getBoundingClientRect().top + window.scrollY - offset;
+            // Get the actual header height dynamically
+            const header = document.querySelector('.dynamic-header');
+            const headerHeight = header ? header.offsetHeight : 80;
+            const yOffset = target.getBoundingClientRect().top + window.scrollY - headerHeight;
             window.scrollTo({ top: yOffset, behavior: "smooth" });
         }
 
@@ -139,7 +159,10 @@ window.addEventListener("scroll", () => {
 });
 
 function updateScrollHighlight() {
-    const offset = window.innerWidth < 768 ? 60 : 85;
+    // Get the actual header height dynamically
+    const header = document.querySelector('.dynamic-header');
+    const headerHeight = header ? header.offsetHeight : 80;
+    const offset = headerHeight + 20; // Add some buffer
     const sections = [
         'aboutUsSection',
         'ourServicesSection',
