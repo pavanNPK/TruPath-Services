@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (year) year.textContent = new Date().getFullYear();
 
     // Disable right-click
-    // document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("contextmenu", e => e.preventDefault());
 
     // Disable dev tools shortcuts
     document.addEventListener("keydown", function (e) {
