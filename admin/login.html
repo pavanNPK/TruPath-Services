@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Admin Login | TruPath Services</title>
+
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../assets/images/core/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/core/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/core/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="../assets/images/core/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/core/apple-touch-icon.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../lib/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./admin.css">
+
+</head>
+<body>
+  <div class="left-panel">
+    <img src="../assets/images/core/favicon.svg" alt="Logo" class="logo">
+    <img src="../assets/images/admin/login.webp" alt="Login Illustration" class="illustration">
+    <div class="bottom-text">
+      <p>Welcome back to TruPath Services — Your career journey starts here.</p>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="login-box">
+      <div class="brand-logo">
+        <img src="../assets/images/admin/admin-login-form.svg" alt="TruPath Logo">
+      </div>
+      <h4>Login</h4>
+      <form id="loginForm">
+        <input type="email" class="form-control" placeholder="Email" required>
+        <input type="password" class="form-control" placeholder="Password" required>
+        <button type="submit" class="btn-login">Login</button>
+        <div class="text-center mt-3">
+          <p class="text-center small m-0">Don't have an account? <a href="./register.html" class="register text-decoration-none fw-bold text-black">Register</a></p>
+          <p class="text-center small m-0">Have you forgotten your password? <a href="./forgot-password.html" class="forgot-password text-decoration-none fw-bold text-black small">Forgot Password?</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert('Login functionality coming soon...');
+    });
+  </script>
+</body>
+</html>
