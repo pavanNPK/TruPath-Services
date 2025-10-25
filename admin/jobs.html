@@ -381,6 +381,7 @@
     }
 
     .job-details-title {
+      margin: 0;
       font-size: 1.3rem;
       font-weight: 600;
       color: #333;
@@ -504,6 +505,15 @@
 
     .btn-danger:hover {
       background-color: #D32F2F;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
     }
 
     /* Modal Styles */
@@ -781,8 +791,8 @@
             </div>
             
             <div class="action-buttons">
-              <button type="button" class="btn btn-primary" onclick="updateJob()">Update Changes</button>
-              <button type="button" class="btn btn-danger" onclick="deleteJob()">Delete Job</button>
+              <button type="button" class="btn btn-primary" id="primaryActionBtn" onclick="handlePrimaryAction()">Update Changes</button>
+              <button type="button" class="btn btn-danger" id="secondaryActionBtn" onclick="handleSecondaryAction()">Delete Job</button>
             </div>
           </form>
         </div>
@@ -932,7 +942,11 @@
         if (!e.target.closest('.job-actions')) {
           closeAllDropdowns();
         }
-        if (!e.target.closest('.job-details') && !e.target.closest('.post-job-btn')) {
+        // Only close job details if clicking outside the panel and not on action buttons
+        if (!e.target.closest('.job-details') && 
+            !e.target.closest('.post-job-btn') && 
+            !e.target.closest('.dropdown-item') &&
+            !e.target.closest('.job-actions')) {
           closeJobDetails();
         }
       });
@@ -1028,26 +1042,31 @@
 
     // View job details
     function viewJob(jobId) {
+      event.preventDefault();
       const job = sampleJobs.find(j => j.id === jobId);
+      console.log(job,'job');
       if (job) {
         selectedJobId = jobId;
-        showJobDetails(job);
+        showJobDetails(job, true); // true indicates view mode
         closeAllDropdowns();
       }
     }
 
     // Edit job
     function editJob(jobId) {
+      event.preventDefault();
       const job = sampleJobs.find(j => j.id === jobId);
+      console.log(job,'job');
       if (job) {
         selectedJobId = jobId;
-        showJobDetails(job);
+        showJobDetails(job, false); // false indicates edit mode
         closeAllDropdowns();
       }
     }
 
     // Delete job
     function deleteJob(jobId) {
+      event.preventDefault();
       selectedJobId = jobId;
       document.getElementById('deleteModal').style.display = 'block';
       closeAllDropdowns();
@@ -1072,38 +1091,129 @@
     }
 
     // Show job details panel
-    function showJobDetails(job) {
+    function showJobDetails(job, isViewMode = false) {
       const jobDetailsPanel = document.getElementById('jobDetailsPanel');
       const form = document.getElementById('jobDetailsForm');
       
       // Populate form with job data
-      document.getElementById('jobTitle').value = job.title;
-      document.getElementById('salary').value = job.salary;
-      document.getElementById('experienceLevel').value = job.experience;
-      document.getElementById('location').value = job.location;
+      document.getElementById('jobTitle').value = job.title || '';
+      document.getElementById('salary').value = job.salary || '';
+      document.getElementById('experienceLevel').value = job.experience || '';
+      document.getElementById('location').value = job.location || '';
       document.getElementById('jobStatus').value = job.status === 'closed' ? 'false' : 'true';
       
       // Set Quill editor content
       if (quillEditor) {
-        quillEditor.setContents(job.description || '');
+        console.log(quillEditor,'quillEditor');
+        // Convert plain text to Quill format if needed
+        const description = job.description || '';
+        if (typeof description === 'string') {
+          console.log(description,'description string');
+          quillEditor.setText(description);
+        } else {
+          console.log(description,'description object');
+          quillEditor.setContents(description);
+        }
       }
       
+      // Handle view vs edit mode
+      if (isViewMode) {
+        // View mode - disable all inputs and hide action buttons
+        setFormMode(false);
+        document.querySelector('.job-details-title').textContent = 'View Job Details';
+      } else {
+        // Edit mode - enable all inputs and show action buttons
+        setFormMode(true);
+        document.querySelector('.job-details-title').textContent = 'Edit Job Details';
+      }
       
+      // Force display and add show class
       jobDetailsPanel.style.display = 'block';
-      jobDetailsPanel.classList.add('show');
+      jobDetailsPanel.style.right = '-400px'; // Start from hidden position
+      
+      // Use setTimeout to ensure the display change takes effect before animation
+      setTimeout(() => {
+        jobDetailsPanel.classList.add('show');
+        jobDetailsPanel.style.right = '0'; // Animate to visible position
+      }, 10);
     }
 
     // Close job details panel
     function closeJobDetails() {
       const jobDetailsPanel = document.getElementById('jobDetailsPanel');
-      jobDetailsPanel.style.display = 'none';
+      
+      // Animate out first
+      jobDetailsPanel.style.right = '-400px';
       jobDetailsPanel.classList.remove('show');
+      
+      // Hide after animation
+      setTimeout(() => {
+        jobDetailsPanel.style.display = 'none';
+      }, 300);
+    }
+
+    // Set form mode (enabled/disabled)
+    function setFormMode(enabled, mode = 'edit') {
+      const form = document.getElementById('jobDetailsForm');
+      const actionButtons = document.querySelector('.action-buttons');
+      const primaryBtn = document.getElementById('primaryActionBtn');
+      const secondaryBtn = document.getElementById('secondaryActionBtn');
+      
+      // Get all form inputs
+      const inputs = form.querySelectorAll('input, select, textarea');
+      
+      inputs.forEach(input => {
+        input.disabled = !enabled;
+        if (!enabled) {
+          input.style.backgroundColor = '#f5f5f5';
+          input.style.cursor = 'not-allowed';
+        } else {
+          input.style.backgroundColor = '';
+          input.style.cursor = '';
+        }
+      });
+      
+      // Disable/enable Quill editor
+      if (quillEditor) {
+        quillEditor.enable(enabled);
+        const editorContainer = document.querySelector('.quill-editor');
+        if (!enabled) {
+          editorContainer.style.backgroundColor = '#f5f5f5';
+          editorContainer.style.cursor = 'not-allowed';
+        } else {
+          editorContainer.style.backgroundColor = '';
+          editorContainer.style.cursor = '';
+        }
+      }
+      
+      // Show/hide action buttons and set button text based on mode
+      if (actionButtons) {
+        actionButtons.style.display = enabled ? 'flex' : 'none';
+        
+        if (enabled && primaryBtn && secondaryBtn) {
+          if (mode === 'post') {
+            // Post new job mode
+            primaryBtn.textContent = 'Post';
+            primaryBtn.className = 'btn btn-primary';
+            secondaryBtn.textContent = 'Cancel';
+            secondaryBtn.className = 'btn btn-secondary';
+          } else {
+            // Edit existing job mode
+            primaryBtn.textContent = 'Update Changes';
+            primaryBtn.className = 'btn btn-primary';
+            secondaryBtn.textContent = 'Cancel';
+            secondaryBtn.className = 'btn btn-secondary';
+          }
+        }
+      }
     }
 
     // Show post job form
     function showPostJobForm() {
       // Clear form and show job details panel
       const form = document.getElementById('jobDetailsForm');
+      const jobDetailsPanel = document.getElementById('jobDetailsPanel');
+      
       form.reset();
       
       // Set default status to "true" (Open) for new jobs
@@ -1111,12 +1221,67 @@
       
       // Clear Quill editor
       if (quillEditor) {
-        quillEditor.setContents('');
+        quillEditor.setText('');
       }
       
-      document.getElementById('jobDetailsPanel').style.display = 'block';
-      document.getElementById('jobDetailsPanel').classList.add('show');
+      // Enable form for new job creation
+      setFormMode(true, 'post');
+      document.querySelector('.job-details-title').textContent = 'Post New Job';
+      
+      // Force display and add show class
+      jobDetailsPanel.style.display = 'block';
+      jobDetailsPanel.style.right = '-400px'; // Start from hidden position
+      
+      // Use setTimeout to ensure the display change takes effect before animation
+      setTimeout(() => {
+        jobDetailsPanel.classList.add('show');
+        jobDetailsPanel.style.right = '0'; // Animate to visible position
+      }, 10);
+      
       selectedJobId = null;
+    }
+
+    // Handle primary action button (Post/Update)
+    function handlePrimaryAction() {
+      if (selectedJobId === null) {
+        // Post new job mode
+        postNewJob();
+      } else {
+        // Update existing job mode
+        updateJob();
+      }
+    }
+
+    // Handle secondary action button (Cancel)
+    function handleSecondaryAction() {
+      // Both post and edit modes - just cancel/close
+      closeJobDetails();
+    }
+
+    // Post new job
+    function postNewJob() {
+      // Validate form
+      const jobTitle = document.getElementById('jobTitle').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const experienceLevel = document.getElementById('experienceLevel').value.trim();
+      const salary = document.getElementById('salary').value.trim();
+      const jobStatus = document.getElementById('jobStatus').value;
+      
+      if (!jobTitle || !location || !experienceLevel || !salary || !jobStatus) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      // Get Quill editor content
+      const jobDescription = quillEditor ? quillEditor.getText().trim() : '';
+      
+      if (!jobDescription) {
+        showToast('Please enter a job description', 'error');
+        return;
+      }
+      
+      showToast('New job posted successfully!', 'success');
+      closeJobDetails();
     }
 
     // Update job
@@ -1134,20 +1299,15 @@
       }
       
       // Get Quill editor content
-      const jobDescription = quillEditor ? quillEditor.getContents() : null;
+      const jobDescription = quillEditor ? quillEditor.getText().trim() : '';
       
-      if (!jobDescription || jobDescription.ops.length === 0 || (jobDescription.ops.length === 1 && !jobDescription.ops[0].insert.trim())) {
+      if (!jobDescription) {
         showToast('Please enter a job description', 'error');
         return;
       }
       
-      if (selectedJobId) {
-        showToast('Job updated successfully!', 'success');
-      } else {
-        showToast('New job posted successfully!', 'success');
-      }
-      document.getElementById('jobDetailsPanel').style.display = 'none';
-      document.getElementById('jobDetailsPanel').classList.remove('show');
+      showToast('Job updated successfully!', 'success');
+      closeJobDetails();
     }
 
     // Confirm delete
