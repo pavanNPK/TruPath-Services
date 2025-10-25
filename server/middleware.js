@@ -176,7 +176,7 @@ export const requestLogger = (req, res, next) => {
     req.requestId = requestId;
     
     // Create a separator for better visibility
-    console.log('\n' + '🔥'.repeat(40));
+    console.log('\n' + '🔥'.repeat(5));
     console.log(`🚀 [${timestamp}] REQUEST #${requestId}`);
     console.log(`🌐 ${method} ${url}`);
     console.log(`📍 Client IP: ${ip}`);
@@ -248,7 +248,7 @@ export const requestLogger = (req, res, next) => {
             console.log(`🆔 Request ID: ${requestId}`);
         }
         
-        console.log('🔥'.repeat(40) + '\n');
+        console.log('🔥'.repeat(5) + '\n');
     });
     
     next();

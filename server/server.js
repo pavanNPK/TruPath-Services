@@ -321,6 +321,44 @@ async function startServer() {
             }
         });
 
+        // Token Verification
+        app.get("/auth/verify", authenticateToken, async (req, res) => {
+            console.log("\n🔥🔥🔥 VERIFY TOKEN API CALLED 🔥🔥🔥");
+            console.log("🆔 Request ID:", req.requestId);
+            console.log("📍 Client IP:", req.ip);
+            console.log("⏰ Timestamp:", new Date().toISOString());
+            console.log("👤 User ID:", req.user?.userId);
+            console.log("📧 User Email:", req.user?.email);
+            console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                // Get user details
+                const user = await getUserById(req.user.userId);
+                console.log("✅ User found:", user.name);
+                
+                console.log("📊 Response Status: 200 - OK");
+                res.json({
+                    success: true,
+                    message: 'Token is valid',
+                    user: {
+                        id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        isVerified: user.isVerified,
+                        isActive: user.isActive
+                    }
+                });
+
+            } catch (error) {
+                console.error("❌ Token verification error:", error);
+                console.log("📊 Response Status: 401 - Unauthorized");
+                res.status(401).json({
+                    success: false,
+                    message: 'Invalid or expired token'
+                });
+            }
+        });
+
         // OTP Verification
         app.post("/auth/verify-otp", authLimiter, async (req, res) => {
             console.log("\n🔥🔥🔥 VERIFY OTP API CALLED 🔥🔥🔥");
@@ -471,6 +509,7 @@ async function startServer() {
                     auth: {
                         register: 'POST /auth/register',
                         login: 'POST /auth/login',
+                        verify: 'GET /auth/verify',
                         verifyOtp: 'POST /auth/verify-otp'
                     },
                     contact: 'POST /contact',
@@ -513,7 +552,7 @@ async function startServer() {
             console.log('   • Full payloads (passwords hidden)');
             console.log('   • Response times and status codes');
             console.log('   • Detailed error information');
-            console.log('🔥'.repeat(60) + '\n');
+            console.log('🔥'.repeat(5) + '\n');
         });
     } catch (error) {
         console.error('❌ Server startup failed:', error);
