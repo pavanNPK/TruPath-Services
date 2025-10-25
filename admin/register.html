@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Admin Login | TruPath Services</title>
-
+  <title>Admin Register | TruPath Services</title>
   <meta name="robots" content="noindex, nofollow">
 
   <!-- Favicon -->
@@ -18,39 +17,724 @@
   <link rel="stylesheet" href="../lib/css/bootstrap.min.css">
   <link rel="stylesheet" href="./admin.css">
 
+  <style>
+    .form-group {
+      position: relative;
+      margin-bottom: 5px; /* Increased margin to prevent overlap */
+      min-height: 65px; /* Reserve space for error messages */
+    }
+
+    /* Make sure input field and icon share a stable line-height space */
+    .form-group .form-control {
+      padding-right: 40px;
+      height: 48px;
+      line-height: 48px;
+      box-sizing: border-box;
+      margin-bottom: 0; /* Remove default margin */
+    }
+
+    /* Stable toggle icon */
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 14px; /* Fixed position relative to input field */
+      cursor: pointer;
+      color: #777;
+      z-index: 2;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Error text with proper spacing */
+    .error {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      font-size: 12px;
+      color: #e63946;
+      display: none;
+      transition: opacity 0.2s ease;
+      width: 100%;
+      line-height: 1.2;
+      margin: 0;
+    }
+    #passwordError {
+        top: 50px !important;
+    }
+
+    /* Dynamic margin for confirm password field */
+    .confirm-password-with-margin {
+        margin-top: 20px;
+    }
+
+    /* Loading Spinner Styles */
+    .loading-spinner {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-top: 5px solid #4ecdc4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+    }
+
+    .toast {
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left: 4px solid #4ecdc4;
+    }
+
+    .toast.error {
+      border-left: 4px solid #ff6b6b;
+    }
+
+  </style>
 </head>
 <body>
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" id="loadingSpinner">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
   <div class="left-panel">
     <img src="../assets/images/core/favicon.svg" alt="Logo" class="logo">
     <img src="../assets/images/admin/login.webp" alt="Login Illustration" class="illustration">
     <div class="bottom-text">
-      <p>Welcome back to TruPath Services — Your career journey starts here.</p>
+      <p>Welcome to TruPath Services — Your career journey starts here.</p>
     </div>
   </div>
 
   <div class="right-panel">
-    <div class="login-box">
-      <div class="brand-logo">
+    <!-- Register Form -->
+    <div class="login-box" id="registerBox">
+      <div class="brand-logo mb-3">
         <img src="../assets/images/admin/admin-login-form.svg" alt="TruPath Logo">
       </div>
-      <h4>Login</h4>
-      <form id="loginForm">
-        <input type="email" class="form-control" placeholder="Email" required>
-        <input type="password" class="form-control" placeholder="Password" required>
-        <button type="submit" class="btn-login">Login</button>
+      <h4>Register</h4>
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <input id="name" type="text" class="form-control" placeholder="Name" required>
+          <small class="error" id="nameError">Name must be 3–15 letters only.</small>
+        </div>
+
+        <div class="form-group">
+          <input id="email" type="email" class="form-control" placeholder="Email" required>
+          <small class="error" id="emailError">Enter a valid email address.</small>
+        </div>
+
+        <div class="form-group">
+          <input id="password" type="password" class="form-control" placeholder="Password" required>
+          <span class="toggle-password" onclick="togglePassword('password', this)">👁</span>
+          <small class="error" id="passwordError">
+            Must contain 1 uppercase & lowercase & number & special char, 8–16 characters.
+          </small>
+        </div>
+
+        <div class="form-group" id="confirmPasswordGroup">
+          <input id="confirmPassword" type="password" class="form-control" placeholder="Confirm Password" required>
+          <span class="toggle-password" onclick="togglePassword('confirmPassword', this)">👁</span>
+          <small class="error" id="confirmError">Passwords do not match.</small>
+        </div>
+
+        <button type="submit" class="btn-login mt-2">Register</button>
         <div class="text-center mt-3">
-          <p class="text-center small m-0">Don't have an account? <a href="./register.html" class="register text-decoration-none fw-bold text-black">Register</a></p>
-          <p class="text-center small m-0">Have you forgotten your password? <a href="./forgot-password.html" class="forgot-password text-decoration-none fw-bold text-black small">Forgot Password?</a></p>
+          <p class="small m-0">Already have an account?
+            <a href="./login.html" class="fw-bold text-black text-decoration-none">Login</a>
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- OTP Verification -->
+    <div class="login-box" id="otpBox" style="display: none;">
+      <div class="brand-logo mb-3">
+        <img src="../assets/images/admin/admin-login-form.svg" alt="TruPath Logo">
+      </div>
+      <p class="fw-bold fs-5 mb-1" id="greetUser">Hello</p>
+      <p class="text-muted small mb-3">Kindly enter the OTP that has been sent to your email. <br> We have also sent an OTP to your admin email.</p>
+
+      <form id="otpForm">
+        <div class="form-group">
+          <input id="otpInput" type="text" class="form-control mb-3" placeholder="Enter OTP" maxlength="6" required>
+          <small class="error" id="otpError">OTP must be exactly 6 digits.</small>
+        </div>
+        <div class="form-group">
+          <input id="adminOtpInput" type="text" class="form-control mb-3" placeholder="Enter Admin OTP" maxlength="6" required>
+          <small class="error" id="adminOtpError">Admin OTP must be exactly 6 digits.</small>
+        </div>
+        <button type="submit" class="btn-login">Verify</button>
+        <div class="text-center mt-3">
+          <a href="#" id="resendOtp" class="text-decoration-none small text-dark">Resend OTP</a>
         </div>
       </form>
     </div>
   </div>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      alert('Login functionality coming soon...');
+  <!-- <script>
+    // API Base URL - Update this to match your server
+    const API_BASE_URL = 'http://localhost:3000';
+
+    const nameEl = document.getElementById('name');
+    const emailEl = document.getElementById('email');
+    const passwordEl = document.getElementById('password');
+    const confirmEl = document.getElementById('confirmPassword');
+    const otpInput = document.getElementById('otpInput');
+    const adminOtpInput = document.getElementById('adminOtpInput');
+
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmError = document.getElementById('confirmError');
+    const otpError = document.getElementById('otpError');
+    const adminOtpError = document.getElementById('adminOtpError');
+    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+
+    const registerForm = document.getElementById('registerForm');
+    const registerBox = document.getElementById('registerBox');
+    const otpBox = document.getElementById('otpBox');
+    const greetUser = document.getElementById('greetUser');
+
+    function togglePassword(id, icon) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "🙈";
+      } else {
+        input.type = "password";
+        icon.textContent = "👁";
+      }
+    }
+
+     // Show/hide loader
+     function showLoader(show) {
+      const loader = document.getElementById('loadingSpinner');
+      if (loader) {
+        loader.style.display = show ? 'block' : 'none';
+      }
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toastContainer = document.getElementById('toastContainer');
+      if (!toastContainer) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      
+      toastContainer.appendChild(toast);
+      
+      // Show toast
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      // Remove toast after 5 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toastContainer.contains(toast)) {
+            toastContainer.removeChild(toast);
+          }
+        }, 300);
+      }, 5000);
+    }
+
+    // Validation functions
+    function validateName() {
+      const nameRegex = /^[A-Za-z ]{3,15}$/;
+      const isValid = nameRegex.test(nameEl.value.trim());
+      nameError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    function validateEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValid = emailRegex.test(emailEl.value.trim());
+      emailError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    function validatePassword() {
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+      const isValid = passRegex.test(passwordEl.value);
+      passwordError.style.display = isValid ? 'none' : 'block';
+      
+      // Add/remove margin-top for confirm password field based on password validation
+      if (isValid) {
+        confirmPasswordGroup.classList.remove('confirm-password-with-margin');
+      } else {
+        confirmPasswordGroup.classList.add('confirm-password-with-margin');
+      }
+      
+      return isValid;
+    }
+
+    function validateConfirmPassword() {
+      const isValid = passwordEl.value === confirmEl.value && confirmEl.value.length > 0;
+      confirmError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    function validateOtp() {
+      const otpRegex = /^\d{6}$/;
+      const isValid = otpRegex.test(otpInput.value.trim());
+      otpError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    function validateAdminOtp() {
+      const otpRegex = /^\d{6}$/;
+      const isValid = otpRegex.test(adminOtpInput.value.trim());
+      adminOtpError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    // Add real-time validation event listeners
+    nameEl.addEventListener('blur', validateName);
+    nameEl.addEventListener('input', function() {
+      if (nameEl.value.length > 0) {
+        validateName();
+      }
     });
-  </script>
+
+    emailEl.addEventListener('blur', validateEmail);
+    emailEl.addEventListener('input', function() {
+      if (emailEl.value.length > 0) {
+        validateEmail();
+      }
+    });
+
+    passwordEl.addEventListener('blur', validatePassword);
+    passwordEl.addEventListener('input', function() {
+      if (passwordEl.value.length > 0) {
+        validatePassword();
+      }
+      // Also validate confirm password when password changes
+      if (confirmEl.value.length > 0) {
+        validateConfirmPassword();
+      }
+    });
+
+    confirmEl.addEventListener('blur', validateConfirmPassword);
+    confirmEl.addEventListener('input', function() {
+      if (confirmEl.value.length > 0) {
+        validateConfirmPassword();
+      }
+    });
+
+    // OTP validation event listeners
+    otpInput.addEventListener('input', function() {
+      // Only allow numbers
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length > 0) {
+        validateOtp();
+      }
+    });
+    otpInput.addEventListener('blur', validateOtp);
+
+    adminOtpInput.addEventListener('input', function() {
+      // Only allow numbers
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length > 0) {
+        validateAdminOtp();
+      }
+    });
+    adminOtpInput.addEventListener('blur', validateAdminOtp);
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate all fields and show all errors
+      const nameValid = validateName();
+      const emailValid = validateEmail();
+      const passwordValid = validatePassword();
+      const confirmValid = validateConfirmPassword();
+      
+      const isValid = nameValid && emailValid && passwordValid && confirmValid;
+
+      if (!isValid) {
+        // Show all error messages for empty or invalid fields
+        if (nameEl.value.trim() === '') {
+          nameError.style.display = 'block';
+        }
+        if (emailEl.value.trim() === '') {
+          emailError.style.display = 'block';
+        }
+        if (passwordEl.value === '') {
+          passwordError.style.display = 'block';
+        }
+        if (confirmEl.value === '') {
+          confirmError.style.display = 'block';
+        }
+        return;
+      }
+
+      try {
+        // Call the real register API
+        const response = await fetch('/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: nameEl.value.trim(),
+            email: emailEl.value.trim(),
+            password: passwordEl.value,
+            phone: '' // Add phone field if needed
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Store user ID for OTP verification
+          window.currentUserId = result.userId;
+          greetUser.textContent = `Hello ${nameEl.value}`;
+          registerBox.style.display = 'none';
+          otpBox.style.display = 'block';
+        } else {
+          alert(`Registration failed: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        alert('Error during registration. Please try again.');
+      }
+    });
+
+    document.getElementById('otpForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate OTP fields
+      const otpValid = validateOtp();
+      const adminOtpValid = validateAdminOtp();
+      
+      if (!otpValid || !adminOtpValid) {
+        // Show error messages for invalid fields
+        if (!otpValid) {
+          otpError.style.display = 'block';
+        }
+        if (!adminOtpValid) {
+          adminOtpError.style.display = 'block';
+        }
+        return;
+      }
+      
+      const otp = otpInput.value.trim();
+      const adminOtp = adminOtpInput.value.trim();
+      
+      try {
+        // Call the real OTP verification API
+        const response = await fetch('/auth/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: window.currentUserId,
+            userOtp: otp,
+            adminOtp: adminOtp
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Registration successful! Welcome to TruPath Services.');
+          // Redirect to login page or dashboard
+          window.location.href = './login.html';
+        } else {
+          alert(`OTP verification failed: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('OTP verification error:', error);
+        alert('Error during OTP verification. Please try again.');
+      }
+    });
+
+    // Resend OTP functionality
+    document.getElementById('resendOtp').addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      if (!window.currentUserId) {
+        alert('No registration session found. Please register again.');
+        return;
+      }
+
+      try {
+        // Call the register API again to resend OTPs
+        const response = await fetch('/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: nameEl.value.trim(),
+            email: emailEl.value.trim(),
+            password: passwordEl.value,
+            phone: ''
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('OTPs have been resent to your email and admin email.');
+        } else {
+          alert(`Failed to resend OTPs: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('Resend OTP error:', error);
+        alert('Error resending OTPs. Please try again.');
+      }
+    });
+  </script> -->
+  <script>
+    // Base URL
+    const API_BASE_URL = 'http://localhost:3000';
+  
+    // DOM elements
+    const nameEl = document.getElementById('name');
+    const emailEl = document.getElementById('email');
+    const passwordEl = document.getElementById('password');
+    const confirmEl = document.getElementById('confirmPassword');
+    const otpInput = document.getElementById('otpInput');
+    const adminOtpInput = document.getElementById('adminOtpInput');
+    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+    const registerBox = document.getElementById('registerBox');
+    const otpBox = document.getElementById('otpBox');
+    const greetUser = document.getElementById('greetUser');
+    const resendOtp = document.getElementById('resendOtp');
+  
+    // Error elements
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmError = document.getElementById('confirmError');
+    const otpError = document.getElementById('otpError');
+    const adminOtpError = document.getElementById('adminOtpError');
+  
+    // Loader & Toast functions
+    function showLoader(show) {
+      const loader = document.getElementById('loadingSpinner');
+      if (loader) loader.style.display = show ? 'block' : 'none';
+    }
+  
+    function showToast(message, type = 'success') {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+  
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+  
+    function togglePassword(id, icon) {
+      const input = document.getElementById(id);
+      input.type = input.type === "password" ? "text" : "password";
+      icon.textContent = input.type === "password" ? "👁" : "🙈";
+    }
+  
+    // Validation logic (unchanged)
+    function validateName() {
+      const valid = /^[A-Za-z ]{3,15}$/.test(nameEl.value.trim());
+      nameError.style.display = valid ? 'none' : 'block';
+      return valid;
+    }
+    function validateEmail() {
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim());
+      emailError.style.display = valid ? 'none' : 'block';
+      return valid;
+    }
+    function validatePassword() {
+      const valid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/.test(passwordEl.value);
+      passwordError.style.display = valid ? 'none' : 'block';
+      if (valid) confirmPasswordGroup.classList.remove('confirm-password-with-margin');
+      else confirmPasswordGroup.classList.add('confirm-password-with-margin');
+      return valid;
+    }
+    function validateConfirmPassword() {
+      const valid = passwordEl.value === confirmEl.value && confirmEl.value.length > 0;
+      confirmError.style.display = valid ? 'none' : 'block';
+      return valid;
+    }
+    function validateOtp() {
+      const valid = /^\d{6}$/.test(otpInput.value.trim());
+      otpError.style.display = valid ? 'none' : 'block';
+      return valid;
+    }
+    function validateAdminOtp() {
+      const valid = /^\d{6}$/.test(adminOtpInput.value.trim());
+      adminOtpError.style.display = valid ? 'none' : 'block';
+      return valid;
+    }
+  
+    // Real-time validation
+    nameEl.addEventListener('input', validateName);
+    emailEl.addEventListener('input', validateEmail);
+    passwordEl.addEventListener('input', validatePassword);
+    confirmEl.addEventListener('input', validateConfirmPassword);
+    otpInput.addEventListener('input', () => { otpInput.value = otpInput.value.replace(/\D/g, ''); validateOtp(); });
+    adminOtpInput.addEventListener('input', () => { adminOtpInput.value = adminOtpInput.value.replace(/\D/g, ''); validateAdminOtp(); });
+  
+    // --- ✅ REGISTER API (login-style) ---
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+  
+      const valid =
+        validateName() &&
+        validateEmail() &&
+        validatePassword() &&
+        validateConfirmPassword();
+  
+      if (!valid) return;
+  
+      try {
+        showLoader(true);
+  
+        const res = await fetch(`${API_BASE_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: nameEl.value.trim(),
+            email: emailEl.value.trim(),
+            password: passwordEl.value
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (data.success) {
+          window.currentUserId = data.userId;
+          greetUser.textContent = `Hello ${nameEl.value}`;
+          registerBox.style.display = 'none';
+          otpBox.style.display = 'block';
+          showToast('OTP sent to your email and admin email', 'success');
+        } else {
+          showToast(data.message || 'Registration failed', 'error');
+        }
+      } catch (err) {
+        console.error('Registration error:', err);
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        showLoader(false);
+      }
+    });
+  
+    // --- ✅ OTP VERIFY API (login-style) ---
+    document.getElementById('otpForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+  
+      const otpValid = validateOtp();
+      const adminOtpValid = validateAdminOtp();
+  
+      if (!otpValid || !adminOtpValid) return;
+  
+      try {
+        showLoader(true);
+  
+        const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: window.currentUserId,
+            userOtp: otpInput.value.trim(),
+            adminOtp: adminOtpInput.value.trim()
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (data.success) {
+          showToast('Registration successful! Redirecting...', 'success');
+          setTimeout(() => window.location.href = './login.html', 1500);
+        } else {
+          showToast(data.message || 'OTP verification failed', 'error');
+        }
+      } catch (err) {
+        console.error('OTP verification error:', err);
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        showLoader(false);
+      }
+    });
+  
+    // --- ✅ RESEND OTP (login-style) ---
+    resendOtp.addEventListener('click', async (e) => {
+      e.preventDefault();
+  
+      if (!window.currentUserId) {
+        showToast('Session expired. Please register again.', 'error');
+        return;
+      }
+  
+      try {
+        showLoader(true);
+  
+        const res = await fetch(`${API_BASE_URL}/auth/resend-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: window.currentUserId })
+        });
+  
+        const data = await res.json();
+  
+        if (data.success) {
+          showToast('OTPs resent successfully to both emails.', 'success');
+        } else {
+          showToast(data.message || 'Failed to resend OTP.', 'error');
+        }
+      } catch (err) {
+        console.error('Resend OTP error:', err);
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        showLoader(false);
+      }
+    });
+  </script>  
 </body>
 </html>
