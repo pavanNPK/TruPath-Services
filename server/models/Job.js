@@ -29,6 +29,12 @@ const jobSchema = new mongoose.Schema({
         trim: true,
         maxlength: [100, 'Salary information cannot exceed 100 characters']
     },
+    status: {
+        type: String,
+        enum: ['open', 'closed'],
+        default: 'open',
+        required: true
+    },
     postedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -58,7 +64,7 @@ jobSchema.virtual('formattedDate').get(function() {
 });
 
 // Static method to search jobs
-jobSchema.statics.searchJobs = function(searchTerm) {
+jobSchema.statics.searchJobs = function(searchTerm, status = null) {
     const query = {};
     
     if (searchTerm) {
@@ -70,6 +76,11 @@ jobSchema.statics.searchJobs = function(searchTerm) {
             { experience: { $regex: searchTerm, $options: 'i' } },
             { salary: { $regex: searchTerm, $options: 'i' } }
         ];
+    }
+    
+    // Filter by status if provided
+    if (status) {
+        query.status = status;
     }
     
     return this.find(query).sort({ createdAt: -1 });

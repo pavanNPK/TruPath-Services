@@ -368,6 +368,20 @@
       margin-left: 8px;
     }
 
+    .open-badge {
+      background-color: #E8F5E8;
+      color: #4CAF50;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    .job-status {
+      display: inline-block;
+    }
+
     .job-actions {
       position: absolute;
       top: 15px;
@@ -909,6 +923,11 @@
         <div class="content-header-right">
           <div class="search-container">
             <input type="text" class="search-input" placeholder="search by name" id="searchInput">
+            <select class="jobs-per-page-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="open">Open Jobs</option>
+              <option value="closed">Closed Jobs</option>
+            </select>
             <select class="jobs-per-page-select" id="jobsPerPageSelect">
               <option value="5">5 per page</option>
               <option value="10">10 per page</option>
@@ -995,6 +1014,14 @@
               <input type="text" class="form-input" id="salary" placeholder="e.g., 25000/- per annum" required>
             </div>
             
+            <div class="form-group">
+              <label class="form-label">Status *</label>
+              <select class="form-select" id="jobStatus" required>
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            
             <div class="action-buttons">
               <button type="button" class="btn btn-primary" id="primaryActionBtn" onclick="handlePrimaryAction()">Update Changes</button>
               <button type="button" class="btn btn-danger" id="secondaryActionBtn" onclick="handleSecondaryAction()">Delete Job</button>
@@ -1027,7 +1054,7 @@
   
   <script>
     // Base URL
-    const API_BASE_URL = 'https://api.trupathservices.com';
+    const API_BASE_URL = 'http://localhost:3000';
     
     // Initialize Quill Editor
     let quillEditor;
@@ -1039,6 +1066,7 @@
     let totalPages = 1;
     let totalJobs = 0;
     let currentSearchTerm = '';
+    let currentStatusFilter = '';
     let jobsPerPage = 15;
 
     // Initialize page
@@ -1109,23 +1137,22 @@
         searchTimeout = setTimeout(() => {
           currentSearchTerm = searchTerm;
           currentPage = 1; // Reset to first page when searching
-          if (searchTerm.length === 0) {
-            loadJobs(); // Load all jobs if search is empty
-          } else {
-            filterJobs(searchTerm);
-          }
+          loadJobs();
         }, 500); // 500ms delay
+      });
+
+      // Status filter selector
+      document.getElementById('statusFilter').addEventListener('change', function(e) {
+        currentStatusFilter = e.target.value;
+        currentPage = 1; // Reset to first page when changing status filter
+        loadJobs();
       });
 
       // Jobs per page selector
       document.getElementById('jobsPerPageSelect').addEventListener('change', function(e) {
         jobsPerPage = e.target.value === 'infinite' ? 999999 : parseInt(e.target.value);
         currentPage = 1; // Reset to first page when changing page size
-        if (currentSearchTerm) {
-          filterJobs(currentSearchTerm);
-        } else {
-          loadJobs();
-        }
+        loadJobs();
       });
 
       // Close dropdowns when clicking outside
@@ -1147,7 +1174,22 @@
     async function loadJobs() {
       try {
         showLoader(true);
-        const response = await fetch(`${API_BASE_URL}/api/jobs?page=${currentPage}&limit=${jobsPerPage}`, {
+        
+        // Build query parameters
+        const params = new URLSearchParams({
+          page: currentPage,
+          limit: jobsPerPage
+        });
+        
+        if (currentSearchTerm) {
+          params.append('search', currentSearchTerm);
+        }
+        
+        if (currentStatusFilter) {
+          params.append('status', currentStatusFilter);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/api/jobs?${params}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -1236,6 +1278,7 @@
         </div>
         <div class="job-meta">
           <div class="job-date">${formattedDate}</div>
+          <div class="job-status ${job.status === 'closed' ? 'closed-badge' : 'open-badge'}">${job.status === 'closed' ? 'Closed' : 'Open'}</div>
         </div>
       `;
       return jobCard;
@@ -1382,6 +1425,7 @@
       document.getElementById('salary').value = job.salary || '';
       document.getElementById('experienceLevel').value = job.experience || '';
       document.getElementById('location').value = job.location || '';
+      document.getElementById('jobStatus').value = job.status || 'open';
       
       // Set Quill editor content
       if (quillEditor) {
@@ -1572,8 +1616,9 @@
       const location = document.getElementById('location').value.trim();
       const experienceLevel = document.getElementById('experienceLevel').value.trim();
       const salary = document.getElementById('salary').value.trim();
+      const jobStatus = document.getElementById('jobStatus').value;
       
-      if (!jobTitle || !location || !experienceLevel || !salary) {
+      if (!jobTitle || !location || !experienceLevel || !salary || !jobStatus) {
         showToast('Please fill in all required fields', 'error');
         return;
       }
@@ -1605,7 +1650,8 @@
             description: jobDescription,
             location: location,
             experience: experienceLevel,
-            salary: salary
+            salary: salary,
+            status: jobStatus
           })
         });
 
@@ -1637,8 +1683,9 @@
       const location = document.getElementById('location').value.trim();
       const experienceLevel = document.getElementById('experienceLevel').value.trim();
       const salary = document.getElementById('salary').value.trim();
+      const jobStatus = document.getElementById('jobStatus').value;
       
-      if (!jobTitle || !location || !experienceLevel || !salary) {
+      if (!jobTitle || !location || !experienceLevel || !salary || !jobStatus) {
         showToast('Please fill in all required fields', 'error');
         return;
       }
@@ -1670,7 +1717,8 @@
             description: jobDescription,
             location: location,
             experience: experienceLevel,
-            salary: salary
+            salary: salary,
+            status: jobStatus
           })
         });
 
@@ -1748,41 +1796,6 @@
       showToast('Job deletion cancelled!', 'info');
     }
 
-    // Filter jobs with API search
-    async function filterJobs(searchTerm) {
-      try {
-        showLoader(true);
-        
-        const response = await fetch(`${API_BASE_URL}/api/jobs?search=${encodeURIComponent(searchTerm)}&page=${currentPage}&limit=${jobsPerPage}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.success) {
-          allJobs = result.data;
-          totalPages = result.pagination.pages;
-          totalJobs = result.pagination.total;
-          displayJobs(result.data);
-          updatePagination();
-        } else {
-          throw new Error(result.message || 'Failed to search jobs');
-        }
-      } catch (error) {
-        console.error('Error searching jobs:', error);
-        showToast('Failed to search jobs: ' + error.message, 'error');
-        displayJobs([]);
-      } finally {
-        showLoader(false);
-      }
-    }
 
     // Logout function
     async function logout() {
@@ -1951,11 +1964,7 @@
     // Go to specific page
     function goToPage(page) {
       currentPage = page;
-      if (currentSearchTerm) {
-        filterJobs(currentSearchTerm);
-      } else {
-        loadJobs();
-      }
+      loadJobs();
     }
 
     // Test function to add sample jobs (for testing pagination)

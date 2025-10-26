@@ -164,6 +164,18 @@
       margin-bottom: 1rem;
     }
 
+    /* No Search Results State */
+    .no-search-results {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #666;
+    }
+
+    .no-search-results h3 {
+      color: #051C3B;
+      margin-bottom: 1rem;
+    }
+
     /* Job Card Enhancements */
     .job-card {
       transition: all 0.3s ease;
@@ -294,6 +306,146 @@
       background-color: #051C3B !important;
       z-index: 1000;
     }
+
+    /* Search and Filter Styles */
+    .search-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      border-color: #051C3B;
+      box-shadow: 0 0 0 0.2rem rgba(5, 28, 59, 0.25);
+    }
+
+    .jobs-per-page-select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      background-color: white;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .jobs-per-page-select:focus {
+      border-color: #051C3B;
+      box-shadow: 0 0 0 0.2rem rgba(5, 28, 59, 0.25);
+    }
+
+    /* Pagination Styles */
+    .pagination-container {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .pagination-info {
+      color: #666;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pagination-btn {
+      padding: 8px 16px;
+      border: 1px solid #DDDDDD;
+      background: white;
+      color: #333;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background-color: #051C3B;
+      color: white;
+      border-color: #051C3B;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-pages {
+      display: flex;
+      gap: 5px;
+    }
+
+    .page-number {
+      padding: 8px 12px;
+      border: 1px solid #DDDDDD;
+      background: white;
+      color: #333;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .page-number:hover {
+      background-color: #f8f9fa;
+    }
+
+    .page-number.active {
+      background-color: #051C3B;
+      color: white;
+      border-color: #051C3B;
+    }
+
+    .page-number:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-outline-secondary {
+      border-color: #6c757d;
+      color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .pagination-container .row {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .pagination-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .pagination-pages {
+        order: -1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -331,17 +483,41 @@
                     <div class="col-12">
                         <h2 class="fw-bold text-center" style="color: #051C3B;">Current Openings</h2>
                         <p class="text-center" style="color: #666;">We're always looking for talented individuals to join our growing team of healthcare documentation experts. Whether you're an experienced coder or just starting your career in healthcare, we have opportunities that match your skills and aspirations.</p>
+                        
+                        <!-- Search and Filter Controls -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <div class="search-container">
+                                    <input type="text" class="form-control search-input" id="searchInput" placeholder="Search jobs by title, location, or keywords...">
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <select class="form-select jobs-per-page-select" id="jobsPerPageSelect">
+                                    <option value="5">5 per page</option>
+                                    <option value="10">10 per page</option>
+                                    <option value="15" selected>15 per page</option>
+                                    <option value="25">25 per page</option>
+                                    <option value="50">50 per page</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Loader -->
                         <div class="careers-loader" id="careersLoader">
                             <div class="spinner"></div>
                             <div class="loader-text" style="color: #666;">Loading job opportunities...</div>
                         </div>
 
-                        <!-- Error State -->
+                        <!-- Network Error State -->
                         <div class="careers-error text-center" id="careersError" style="display: none;">
-                            <h3>Unable to Load Jobs</h3>
-                            <p class="text-center">We're having trouble loading our current job openings. Please try again.</p>
-                            <button class="retry-btn" onclick="loadJobs()">Retry</button>
+                            <h3>Network Error</h3>
+                            <p class="text-center">Unable to connect to our servers. Please check your internet connection and try again.</p>
+                            <button class="retry-btn" onclick="loadJobs()">Try Again</button>
                         </div>
 
                         <!-- No Jobs State -->
@@ -351,9 +527,39 @@
                             <p class="text-center">Please send your resume to <a href="mailto:hr@trupathservices.com">hr@trupathservices.com</a></p>
                         </div>
 
+                        <!-- No Search Results State -->
+                        <div class="no-search-results text-center" id="noSearchResults" style="display: none;">
+                            <h3 class="text-center">No Jobs Found</h3>
+                            <p class="text-center">No jobs match your search criteria. Try adjusting your search terms or filters using the controls above.</p>
+                        </div>
+
                         <!-- Jobs Container -->
                         <div class="accordion" id="careersAccordion" style="display: none;">
                             <!-- Jobs will be dynamically loaded here -->
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-container mt-4" id="paginationContainer" style="display: none;">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="pagination-info" id="paginationInfo">
+                                        Showing 0 to 0 of 0 jobs
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="pagination-controls d-flex justify-content-end" id="paginationControls">
+                                        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                                            <span>←</span> Previous
+                                        </button>
+                                        <div class="pagination-pages d-flex" id="paginationPages">
+                                            <!-- Page numbers will be generated here -->
+                                        </div>
+                                        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
+                                            Next <span>→</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -419,10 +625,16 @@
     <script src="./lib/js/bootstrap.bundle.js" defer></script>
     <script>
          // Base URL
-        const API_BASE_URL = 'https://api.trupathservices.com';
+        const API_BASE_URL = 'http://localhost:3000';
         // Set current year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
+        // Global variables for pagination and search
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalJobs = 0;
+        let currentSearchTerm = '';
+        let jobsPerPage = 15;
 
         // Function to format job description
         function formatJobDescription(description) {
@@ -514,43 +726,200 @@
             const loader = document.getElementById('careersLoader');
             const errorDiv = document.getElementById('careersError');
             const noJobsDiv = document.getElementById('noJobs');
+            const noSearchResultsDiv = document.getElementById('noSearchResults');
             const accordion = document.getElementById('careersAccordion');
+            const paginationContainer = document.getElementById('paginationContainer');
 
             try {
-                // Show loader
+                // Show loader and hide all other states
                 loader.style.display = 'flex';
                 errorDiv.style.display = 'none';
                 noJobsDiv.style.display = 'none';
+                noSearchResultsDiv.style.display = 'none';
                 accordion.style.display = 'none';
+                paginationContainer.style.display = 'none';
 
-                // Fetch jobs from API
-                const response = await fetch(`${API_BASE_URL}/api/jobs?limit=999999`);
+                // Build query parameters
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: jobsPerPage
+                });
+
+                if (currentSearchTerm) {
+                    params.append('search', currentSearchTerm);
+                }
+
+                // Fetch jobs from careers API (only open jobs)
+                const response = await fetch(`${API_BASE_URL}/api/careers/jobs?${params}`);
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
 
                 if (data.success && data.data.length > 0) {
                     // Hide loader and show jobs
                     loader.style.display = 'none';
                     accordion.style.display = 'block';
+                    paginationContainer.style.display = 'block';
+                    
+                    // Update pagination data
+                    totalPages = data.pagination.pages;
+                    totalJobs = data.pagination.total;
                     
                     // Generate job cards
                     const jobsHTML = data.data.map((job, index) => createJobCard(job, index)).join('');
                     accordion.innerHTML = jobsHTML;
+                    
+                    // Update pagination UI
+                    updatePagination();
                 } else {
-                    // No jobs available
+                    // No jobs available - check if it's a search/filter result or no jobs at all
                     loader.style.display = 'none';
-                    noJobsDiv.style.display = 'block';
+                    
+                    if (currentSearchTerm || currentPage > 1) {
+                        // This is a search/filter result with no matches
+                        noSearchResultsDiv.style.display = 'block';
+                    } else {
+                        // No jobs available at all
+                        noJobsDiv.style.display = 'block';
+                    }
                 }
 
             } catch (error) {
                 console.error('Error loading jobs:', error);
-                // Show error state
+                
+                // Hide loader
                 loader.style.display = 'none';
+                
+                // Check if it's a network error
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    // Network error - no internet connection
+                    errorDiv.querySelector('h3').textContent = 'Network Error';
+                    errorDiv.querySelector('p').textContent = 'Connection failed. This may be due to maintenance or network issues. Please try again shortly.';
+                } else if (error.message.includes('HTTP error')) {
+                    // Server error
+                    errorDiv.querySelector('h3').textContent = 'Server Error';
+                    errorDiv.querySelector('p').textContent = 'We\'re experiencing technical difficulties. Please try again in a few moments.';
+                } else {
+                    // Generic error
+                    errorDiv.querySelector('h3').textContent = 'Unable to Load Jobs';
+                    errorDiv.querySelector('p').textContent = 'We\'re having trouble loading our current job openings. Please try again.';
+                }
+                
                 errorDiv.style.display = 'block';
             }
         }
 
+        // Update pagination UI
+        function updatePagination() {
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationPages = document.getElementById('paginationPages');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Update pagination info
+            const startItem = (currentPage - 1) * jobsPerPage + 1;
+            const endItem = Math.min(currentPage * jobsPerPage, totalJobs);
+            paginationInfo.textContent = `Showing ${startItem} to ${endItem} of ${totalJobs} jobs`;
+
+            // Update prev/next buttons
+            prevBtn.disabled = currentPage === 1 || totalPages <= 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages <= 1;
+
+            // Generate page numbers
+            paginationPages.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                // Show just the current page when there's only one page
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-number active';
+                pageBtn.textContent = '1';
+                pageBtn.disabled = true;
+                paginationPages.appendChild(pageBtn);
+            } else {
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => goToPage(i);
+                    paginationPages.appendChild(pageBtn);
+                }
+            }
+        }
+
+        // Change page
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                goToPage(newPage);
+            }
+        }
+
+        // Go to specific page
+        function goToPage(page) {
+            currentPage = page;
+            loadJobs();
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            currentSearchTerm = '';
+            currentPage = 1;
+            jobsPerPage = 15;
+            
+            // Reset form elements
+            document.getElementById('searchInput').value = '';
+            document.getElementById('jobsPerPageSelect').value = '15';
+            
+            // Hide all states
+            document.getElementById('noSearchResults').style.display = 'none';
+            document.getElementById('noJobs').style.display = 'none';
+            document.getElementById('careersError').style.display = 'none';
+            
+            // Reload jobs
+            loadJobs();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality with debounce
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.trim();
+                
+                // Clear previous timeout
+                clearTimeout(searchTimeout);
+                
+                // Set new timeout
+                searchTimeout = setTimeout(() => {
+                    currentSearchTerm = searchTerm;
+                    currentPage = 1; // Reset to first page when searching
+                    loadJobs();
+                }, 500); // 500ms delay
+            });
+
+            // Jobs per page selector
+            document.getElementById('jobsPerPageSelect').addEventListener('change', function(e) {
+                jobsPerPage = parseInt(e.target.value);
+                currentPage = 1; // Reset to first page when changing page size
+                loadJobs();
+            });
+        }
+
         // Load jobs when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
             loadJobs();
         });
 

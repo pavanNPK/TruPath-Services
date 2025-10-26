@@ -764,11 +764,12 @@ async function startServer() {
             console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
-                const { search, page = 1, limit = 10 } = req.query;
+                const { search, page = 1, limit = 10, status } = req.query;
                 
                 const searchTerm = search ? search.trim() : '';
+                const statusFilter = status || null;
                 
-                const jobs = await Job.searchJobs(searchTerm)
+                const jobs = await Job.searchJobs(searchTerm, statusFilter)
                     .populate('postedBy', 'name email')
                     .limit(limit * 1)
                     .skip((page - 1) * limit);
@@ -785,6 +786,11 @@ async function startServer() {
                             { salary: { $regex: searchTerm, $options: 'i' } }
                         ]
                     };
+                }
+                
+                // Add status filter to count query
+                if (statusFilter) {
+                    countQuery.status = statusFilter;
                 }
                 
                 const totalJobs = await Job.countDocuments(countQuery);
@@ -864,7 +870,7 @@ async function startServer() {
             console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
-                const { title, description, location, experience, salary } = sanitizeInput(req.body);
+                const { title, description, location, experience, salary, status = 'open' } = sanitizeInput(req.body);
                 
                 if (!title || !description || !location || !experience || !salary) {
                     console.log('❌ Create job failed: Missing required fields');
@@ -881,6 +887,7 @@ async function startServer() {
                     location,
                     experience,
                     salary,
+                    status,
                     postedBy: req.user.userId
                 };
                 
@@ -920,7 +927,7 @@ async function startServer() {
             console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
-                const { title, description, location, experience, salary } = sanitizeInput(req.body);
+                const { title, description, location, experience, salary, status } = sanitizeInput(req.body);
                 
                 const job = await Job.findById(req.params.id);
                 
@@ -939,6 +946,7 @@ async function startServer() {
                 if (location) job.location = location;
                 if (experience) job.experience = experience;
                 if (salary) job.salary = salary;
+                if (status) job.status = status;
                 
                 await job.save();
                 
@@ -1002,6 +1010,64 @@ async function startServer() {
                 res.status(500).json({
                     success: false,
                     message: 'Failed to delete job'
+                });
+            }
+        });
+
+        // Get open jobs for careers page (Public)
+        app.get('/api/careers/jobs', async (req, res) => {
+            console.log('\n🔥🔥🔥 GET CAREERS JOBS API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('📦 Query params:', JSON.stringify(req.query, null, 2));
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { search, page = 1, limit = 10 } = req.query;
+                
+                const searchTerm = search ? search.trim() : '';
+                
+                // Only get open jobs for careers page
+                const jobs = await Job.searchJobs(searchTerm, 'open')
+                    .populate('postedBy', 'name email')
+                    .limit(limit * 1)
+                    .skip((page - 1) * limit);
+                
+                // Use the same search logic for counting, but only open jobs
+                let countQuery = { status: 'open' };
+                if (searchTerm) {
+                    countQuery.$or = [
+                        { title: { $regex: searchTerm, $options: 'i' } },
+                        { description: { $regex: searchTerm, $options: 'i' } },
+                        { location: { $regex: searchTerm, $options: 'i' } },
+                        { experience: { $regex: searchTerm, $options: 'i' } },
+                        { salary: { $regex: searchTerm, $options: 'i' } }
+                    ];
+                }
+                
+                const totalJobs = await Job.countDocuments(countQuery);
+                
+                console.log(`✅ Found ${jobs.length} open jobs out of ${totalJobs} total`);
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    data: jobs,
+                    pagination: {
+                        current: parseInt(page),
+                        pages: Math.ceil(totalJobs / limit),
+                        total: totalJobs,
+                        limit: parseInt(limit)
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Get careers jobs error:', error);
+                console.log('📊 Response Status: 500 - Internal Server Error');
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch careers jobs'
                 });
             }
         });
@@ -1090,7 +1156,7 @@ async function startServer() {
 
         // Start server
         const port = process.env.APP_PORT || 3000;
-        const host = process.env.APP_HOST || 'https://trupathservices.com';
+        const host = process.env.APP_HOST || 'https://api.trupathservices.com';
 
         app.listen(port, () => {
             console.log('\n' + '🔥'.repeat(10));
