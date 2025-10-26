@@ -32,6 +32,7 @@ import {
 // Import models
 import OTPToken from './models/OTPToken.js';
 import User from './models/User.js';
+import Job from './models/Job.js';
 
 import { 
     getPasswordResetEmailTemplate, 
@@ -488,6 +489,292 @@ async function startServer() {
             });
         });
 
+        // ==================== JOB MANAGEMENT ROUTES ====================
+
+        // Get all jobs with search
+        app.get('/api/jobs', async (req, res) => {
+            console.log('\n🔥🔥🔥 GET JOBS API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('📦 Query params:', JSON.stringify(req.query, null, 2));
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { search, page = 1, limit = 10 } = req.query;
+                
+                const searchTerm = search ? search.trim() : '';
+                
+                const jobs = await Job.searchJobs(searchTerm)
+                    .populate('postedBy', 'name email')
+                    .limit(limit * 1)
+                    .skip((page - 1) * limit);
+                
+                // Use the same search logic for counting
+                let countQuery = {};
+                if (searchTerm) {
+                    countQuery = {
+                        $or: [
+                            { title: { $regex: searchTerm, $options: 'i' } },
+                            { description: { $regex: searchTerm, $options: 'i' } },
+                            { location: { $regex: searchTerm, $options: 'i' } },
+                            { experience: { $regex: searchTerm, $options: 'i' } },
+                            { salary: { $regex: searchTerm, $options: 'i' } }
+                        ]
+                    };
+                }
+                
+                const totalJobs = await Job.countDocuments(countQuery);
+                
+                console.log(`✅ Found ${jobs.length} jobs out of ${totalJobs} total`);
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    data: jobs,
+                    pagination: {
+                        current: parseInt(page),
+                        pages: Math.ceil(totalJobs / limit),
+                        total: totalJobs,
+                        limit: parseInt(limit)
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Get jobs error:', error);
+                console.log('📊 Response Status: 500 - Internal Server Error');
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch jobs'
+                });
+            }
+        });
+
+        // Get single job by ID
+        app.get('/api/jobs/:id', async (req, res) => {
+            console.log('\n🔥🔥🔥 GET JOB BY ID API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('🆔 Job ID:', req.params.id);
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const job = await Job.findById(req.params.id)
+                    .populate('postedBy', 'name email');
+                
+                if (!job) {
+                    console.log('❌ Job not found');
+                    console.log('📊 Response Status: 404 - Not Found');
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Job not found'
+                    });
+                }
+                
+                console.log('✅ Job found');
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    data: job
+                });
+                
+            } catch (error) {
+                console.error('❌ Get job by ID error:', error);
+                console.log('📊 Response Status: 500 - Internal Server Error');
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch job'
+                });
+            }
+        });
+
+        // Create new job (Admin only)
+        app.post('/api/jobs', authenticateToken, async (req, res) => {
+            console.log('\n🔥🔥🔥 CREATE JOB API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('👤 User ID:', req.user?.userId);
+            console.log('📦 Full payload:', JSON.stringify(req.body, null, 2));
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { title, description, location, experience, salary } = sanitizeInput(req.body);
+                
+                if (!title || !description || !location || !experience || !salary) {
+                    console.log('❌ Create job failed: Missing required fields');
+                    console.log('📊 Response Status: 400 - Bad Request');
+                    return res.status(400).json({
+                        success: false,
+                        message: 'All required fields must be provided'
+                    });
+                }
+                
+                const jobData = {
+                    title,
+                    description,
+                    location,
+                    experience,
+                    salary,
+                    postedBy: req.user.userId
+                };
+                
+                const job = new Job(jobData);
+                await job.save();
+                
+                const populatedJob = await Job.findById(job._id).populate('postedBy', 'name email');
+                
+                console.log('✅ Job created successfully with ID:', job._id);
+                console.log('📊 Response Status: 201 - Created');
+                
+                res.status(201).json({
+                    success: true,
+                    message: 'Job created successfully',
+                    data: populatedJob
+                });
+                
+            } catch (error) {
+                console.error('❌ Create job error:', error);
+                console.log('📊 Response Status: 400 - Bad Request');
+                res.status(400).json({
+                    success: false,
+                    message: error.message || 'Failed to create job'
+                });
+            }
+        });
+
+        // Update job (Admin only)
+        app.put('/api/jobs/:id', authenticateToken, async (req, res) => {
+            console.log('\n🔥🔥🔥 UPDATE JOB API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('👤 User ID:', req.user?.userId);
+            console.log('🆔 Job ID:', req.params.id);
+            console.log('📦 Full payload:', JSON.stringify(req.body, null, 2));
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { title, description, location, experience, salary } = sanitizeInput(req.body);
+                
+                const job = await Job.findById(req.params.id);
+                
+                if (!job) {
+                    console.log('❌ Job not found');
+                    console.log('📊 Response Status: 404 - Not Found');
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Job not found'
+                    });
+                }
+                
+                // Update fields if provided
+                if (title) job.title = title;
+                if (description) job.description = description;
+                if (location) job.location = location;
+                if (experience) job.experience = experience;
+                if (salary) job.salary = salary;
+                
+                await job.save();
+                
+                const updatedJob = await Job.findById(job._id).populate('postedBy', 'name email');
+                
+                console.log('✅ Job updated successfully');
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    message: 'Job updated successfully',
+                    data: updatedJob
+                });
+                
+            } catch (error) {
+                console.error('❌ Update job error:', error);
+                console.log('📊 Response Status: 400 - Bad Request');
+                res.status(400).json({
+                    success: false,
+                    message: error.message || 'Failed to update job'
+                });
+            }
+        });
+
+        // Delete job (Admin only)
+        app.delete('/api/jobs/:id', authenticateToken, async (req, res) => {
+            console.log('\n🔥🔥🔥 DELETE JOB API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('👤 User ID:', req.user?.userId);
+            console.log('🆔 Job ID:', req.params.id);
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const job = await Job.findById(req.params.id);
+                
+                if (!job) {
+                    console.log('❌ Job not found');
+                    console.log('📊 Response Status: 404 - Not Found');
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Job not found'
+                    });
+                }
+                
+                // Hard delete - remove from database
+                await Job.findByIdAndDelete(req.params.id);
+                
+                console.log('✅ Job deleted successfully');
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    message: 'Job deleted successfully'
+                });
+                
+            } catch (error) {
+                console.error('❌ Delete job error:', error);
+                console.log('📊 Response Status: 500 - Internal Server Error');
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to delete job'
+                });
+            }
+        });
+
+        // Get job statistics (Admin only)
+        app.get('/api/jobs/stats', authenticateToken, async (req, res) => {
+            console.log('\n🔥🔥🔥 GET JOB STATS API CALLED 🔥🔥🔥');
+            console.log('🆔 Request ID:', req.requestId);
+            console.log('📍 Client IP:', req.ip);
+            console.log('⏰ Timestamp:', new Date().toISOString());
+            console.log('👤 User ID:', req.user?.userId);
+            console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const stats = await Job.getJobStats();
+                
+                console.log('✅ Job statistics retrieved successfully');
+                console.log('📊 Response Status: 200 - OK');
+                
+                res.json({
+                    success: true,
+                    data: {
+                        totalJobs: stats[0]?.totalJobs || 0
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Get job stats error:', error);
+                console.log('📊 Response Status: 500 - Internal Server Error');
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch job statistics'
+                });
+            }
+        });
+
         // API Monitoring endpoint
         app.get('/api/monitor', (req, res) => {
             console.log('\n🔥🔥🔥 API MONITOR ENDPOINT CALLED 🔥🔥🔥');
@@ -511,6 +798,14 @@ async function startServer() {
                         login: 'POST /auth/login',
                         verify: 'GET /auth/verify',
                         verifyOtp: 'POST /auth/verify-otp'
+                    },
+                    jobs: {
+                        getAll: 'GET /api/jobs',
+                        getById: 'GET /api/jobs/:id',
+                        create: 'POST /api/jobs',
+                        update: 'PUT /api/jobs/:id',
+                        delete: 'DELETE /api/jobs/:id',
+                        stats: 'GET /api/jobs/stats'
                     },
                     contact: 'POST /contact',
                     test: 'GET /test-logging',
