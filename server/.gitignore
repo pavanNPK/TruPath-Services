@@ -1,6 +1,7 @@
 server/.env
 server/package-lock.json
 .idea/
+lib/.DS_Store
 .DS_Store
 .vscode/
 node_modules/
