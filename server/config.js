@@ -26,5 +26,5 @@ export const config = {
     MAIL_PASS: process.env.MAIL_PASS,
     NODE_ENV: process.env.NODE_ENV,
     APP_PORT: process.env.APP_PORT || 3000,
-    APP_HOST: process.env.APP_HOST || 'http://localhost:3000'
+    APP_HOST: process.env.APP_HOST || 'https://api.trupathservices.com'
 };
