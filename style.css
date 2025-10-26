@@ -1056,3 +1056,51 @@ body {
 .contact-logo-img:hover {
   transform: scale(1.05);
 }
+
+/* ============================= */
+/*   REFINED CAREERS SECTION     */
+/* ============================= */
+
+.careers-intro {
+  font-size: 1.05rem;
+  color: #333;
+  line-height: 1.7;
+}
+
+
+.careers-cta {
+  background: linear-gradient(135deg, #051C3B, #243b55);
+  color: #fff;
+  border-radius: 15px;
+  max-width: 700px;
+  box-shadow: 0 10px 30px rgba(5, 28, 59, 0.25);
+  transition: all 0.3s ease;
+}
+
+.careers-cta:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(5, 28, 59, 0.3);
+}
+
+.careers-cta h5 {
+  font-weight: 700;
+}
+
+.careers-cta p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.careers-cta .btn {
+  background: #fff;
+  color: #051C3B;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.careers-cta .btn:hover {
+  background: #4ecdc4;
+  color: #fff;
+  transform: translateY(-2px);
+}
