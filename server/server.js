@@ -458,6 +458,114 @@ async function startServer() {
             }
         });
 
+        // Forgot Password route
+        app.post("/auth/forgot-password", passwordResetLimiter, async (req, res) => {
+            console.log("\n🔥🔥🔥 FORGOT PASSWORD API CALLED 🔥🔥🔥");
+            console.log("🆔 Request ID:", req.requestId);
+            console.log("📍 Client IP:", req.ip);
+            console.log("⏰ Timestamp:", new Date().toISOString());
+            console.log("📧 Email:", req.body?.email || 'Not provided');
+            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { email } = sanitizeInput(req.body);
+
+                if (!email) {
+                    console.log("❌ Forgot password failed: Missing email");
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Email is required'
+                    });
+                }
+
+                console.log("🔍 Generating password reset token for:", email);
+                const result = await generatePasswordResetToken(email);
+                console.log("✅ Password reset token generated successfully");
+
+                // Send password reset email
+                console.log("📧 Sending password reset email...");
+                const resetUrl = `${process.env.APP_HOST || 'http://localhost:3000'}/admin/reset-password.html`;
+                console.log("🔗 Reset URL:", resetUrl);
+                
+                await transporter.sendMail({
+                    from: `"TruPath Services" <${process.env.MAIL_USER}>`,
+                    to: email,
+                    subject: "Password Reset Instructions",
+                    html: getPasswordResetEmailTemplate(result.user.name, result.resetToken, resetUrl)
+                });
+
+                console.log("✅ Password reset email sent successfully");
+                console.log("📊 Response Status: 200 - OK");
+                res.json({
+                    success: true,
+                    message: 'Password reset instructions sent to your email'
+                });
+
+            } catch (error) {
+                console.error("❌ Forgot password error:", error);
+                console.log("📊 Response Status: 400 - Bad Request");
+                console.log("💬 Error message:", error.message);
+                res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        });
+
+        // Reset Password route
+        app.post("/auth/reset-password", passwordResetLimiter, async (req, res) => {
+            console.log("\n🔥🔥🔥 RESET PASSWORD API CALLED 🔥🔥🔥");
+            console.log("🆔 Request ID:", req.requestId);
+            console.log("📍 Client IP:", req.ip);
+            console.log("⏰ Timestamp:", new Date().toISOString());
+            console.log("🔑 Token provided:", !!req.body?.token);
+            console.log("🔒 Password provided:", !!req.body?.password);
+            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { token, password } = sanitizeInput(req.body);
+
+                if (!token || !password) {
+                    console.log("❌ Reset password failed: Missing token or password");
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Token and password are required'
+                    });
+                }
+
+                console.log("🔍 Resetting password with token...");
+                const user = await resetPassword(token, password);
+                console.log("✅ Password reset successful for user:", user.name);
+
+                // Send password reset success email
+                console.log("📧 Sending password reset success email...");
+                await transporter.sendMail({
+                    from: `"TruPath Services" <${process.env.MAIL_USER}>`,
+                    to: user.email,
+                    subject: "Password Reset Successful",
+                    html: getPasswordResetSuccessEmailTemplate(user.name)
+                });
+
+                console.log("✅ Password reset success email sent");
+                console.log("📊 Response Status: 200 - OK");
+                res.json({
+                    success: true,
+                    message: 'Password reset successfully'
+                });
+
+            } catch (error) {
+                console.error("❌ Reset password error:", error);
+                console.log("📊 Response Status: 400 - Bad Request");
+                console.log("💬 Error message:", error.message);
+                res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        });
+
         // Contact form route
         app.post("/contact", contactLimiter, async (req, res) => {
             console.log("\n🔥🔥🔥 CONTACT FORM API CALLED 🔥🔥🔥");
