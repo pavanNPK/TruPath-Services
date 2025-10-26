@@ -224,7 +224,7 @@ async function startServer() {
             console.log("🆔 Request ID:", req.requestId);
             console.log("📍 Client IP:", req.ip);
             console.log("⏰ Timestamp:", new Date().toISOString());
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -247,8 +247,8 @@ async function startServer() {
                 const userOTP = await generateRegistrationOTP(user._id, user.email, 'user');
                 const adminOTP = await generateRegistrationOTP(user._id, user.email, 'admin');
                 console.log("✅ OTPs generated successfully");
-                console.log("🔑 User OTP:", userOTP);
-                console.log("🔑 Admin OTP:", adminOTP);
+                console.log("🔑 User OTP: [REDACTED]");
+                console.log("🔑 Admin OTP: [REDACTED]");
 
                 // Send user OTP email
                 try {
@@ -302,7 +302,7 @@ async function startServer() {
             console.log("⏰ Timestamp:", new Date().toISOString());
             console.log("📧 Email:", req.body?.email || 'Not provided');
             console.log("🔒 Password provided:", !!req.body?.password);
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             let email = null;
@@ -386,7 +386,7 @@ async function startServer() {
             console.log("🆔 Request ID:", req.requestId);
             console.log("📍 Client IP:", req.ip);
             console.log("⏰ Timestamp:", new Date().toISOString());
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -402,12 +402,12 @@ async function startServer() {
                 }
 
                 console.log("🔍 Verifying user OTP for user:", userId);
-                console.log("🔑 User OTP:", userOtp);
+                console.log("🔑 User OTP: [REDACTED]");
                 await verifyOTP(userOtp, userId, 'user');
                 console.log("✅ User OTP verification successful");
 
                 console.log("🔍 Verifying admin OTP for user:", userId);
-                console.log("🔑 Admin OTP:", adminOtp);
+                console.log("🔑 Admin OTP: [REDACTED]");
                 await verifyOTP(adminOtp, userId, 'admin');
                 console.log("✅ Admin OTP verification successful");
 
@@ -465,7 +465,7 @@ async function startServer() {
             console.log("📍 Client IP:", req.ip);
             console.log("⏰ Timestamp:", new Date().toISOString());
             console.log("📧 Email:", req.body?.email || 'Not provided');
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -519,7 +519,7 @@ async function startServer() {
             console.log("🆔 Request ID:", req.requestId);
             console.log("📍 Client IP:", req.ip);
             console.log("⏰ Timestamp:", new Date().toISOString());
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -604,7 +604,7 @@ async function startServer() {
             console.log("⏰ Timestamp:", new Date().toISOString());
             console.log("🔑 Token provided:", !!req.body?.token);
             console.log("🔒 Password provided:", !!req.body?.password);
-            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("📦 Payload fields:", Object.keys(req.body || {}));
             console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -860,7 +860,7 @@ async function startServer() {
             console.log('📍 Client IP:', req.ip);
             console.log('⏰ Timestamp:', new Date().toISOString());
             console.log('👤 User ID:', req.user?.userId);
-            console.log('📦 Full payload:', JSON.stringify(req.body, null, 2));
+            console.log('📦 Payload fields:', Object.keys(req.body || {}));
             console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -916,7 +916,7 @@ async function startServer() {
             console.log('⏰ Timestamp:', new Date().toISOString());
             console.log('👤 User ID:', req.user?.userId);
             console.log('🆔 Job ID:', req.params.id);
-            console.log('📦 Full payload:', JSON.stringify(req.body, null, 2));
+            console.log('📦 Payload fields:', Object.keys(req.body || {}));
             console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
             
             try {
@@ -1107,7 +1107,7 @@ async function startServer() {
             console.log('📝 All API calls will be logged with:');
             console.log('   • Request ID for tracking');
             console.log('   • Client IP addresses');
-            console.log('   • Full payloads (passwords hidden)');
+            console.log('   • Payload field names only (sensitive data redacted)');
             console.log('   • Response times and status codes');
             console.log('   • Detailed error information');
             console.log('🔥'.repeat(5) + '\n');
