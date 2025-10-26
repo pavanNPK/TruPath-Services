@@ -69,8 +69,26 @@ export const registerUser = async (userData) => {
     console.log("🔍 Checking if user already exists...");
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
-        console.log("❌ User already exists with email:", email);
-        throw new Error('User with this email already exists');
+        // If user exists and is verified, throw error
+        if (existingUser.isVerified && existingUser.isActive) {
+            console.log("❌ Verified user already exists with email:", email);
+            throw new Error('User with this email already exists');
+        }
+        // If user exists but is not verified, update the existing user
+        if (!existingUser.isVerified || !existingUser.isActive) {
+            console.log("🔄 Updating existing unverified user:", email);
+            existingUser.name = name.trim();
+            existingUser.password = password; // Will be hashed by pre-save hook
+            existingUser.phone = phone || null;
+            existingUser.isEmailVerified = false;
+            existingUser.isVerified = false;
+            existingUser.isActive = false;
+            existingUser.verifiedAt = null;
+            existingUser.createdAt = new Date(); // Reset creation time for cleanup
+            await existingUser.save();
+            console.log("✅ Unverified user updated successfully");
+            return existingUser;
+        }
     }
     console.log("✅ No existing user found");
 

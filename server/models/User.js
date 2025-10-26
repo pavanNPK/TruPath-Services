@@ -46,10 +46,10 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Auto-delete inactive users after 5 minutes
+// Auto-delete inactive users after 10 minutes
 userSchema.index(
   { createdAt: 1 },
-  { name: 'inactive_user_cleanup', expireAfterSeconds: 300, partialFilterExpression: { isVerified: false } }
+  { name: 'inactive_user_cleanup', expireAfterSeconds: 600, partialFilterExpression: { isVerified: false } }
 );
 
 // Pre-save hash password
