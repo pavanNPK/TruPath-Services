@@ -145,6 +145,50 @@
     // API Base URL - Update this to match your server
     const API_BASE_URL = 'http://localhost:3000';
 
+    // Check if user is already authenticated
+    async function checkExistingAuth() {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        return; // No token, user needs to login
+      }
+
+      // Verify token with server
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.success) {
+            // User is already authenticated, redirect to jobs page
+            showToast('Already logged in. Redirecting...', 'success');
+            setTimeout(() => {
+              window.location.href = './jobs.html';
+            }, 1000);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Token verification failed:', error);
+      }
+
+      // Token is invalid or expired, clear it
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    }
+
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkExistingAuth();
+    });
+
     function togglePassword(id, icon) {
       const input = document.getElementById(id);
       if (input.type === "password") {

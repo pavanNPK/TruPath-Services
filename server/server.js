@@ -61,7 +61,27 @@ app.use(requestLogger);
 app.use(express.json());
 app.use(express.static('public'));
 app.use(cors());
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.quilljs.com"],
+            scriptSrc: ["'self'", "https://cdn.quilljs.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+        },
+    },
+    crossOriginEmbedderPolicy: false,
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    }
+}));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -487,6 +507,58 @@ async function startServer() {
                 userAgent: req.get('User-Agent'),
                 requestId: req.requestId
             });
+        });
+
+        // Token Verification endpoint
+        app.get("/auth/verify", authenticateToken, async (req, res) => {
+            try {
+                console.log('\n🔐 TOKEN VERIFICATION API CALLED 🔐');
+                console.log('🆔 Request ID:', req.requestId);
+                console.log('📍 Client IP:', req.ip);
+                console.log('👤 User ID:', req.user?.id);
+                console.log('⏰ Timestamp:', new Date().toISOString());
+
+                // If we reach here, the token is valid (authenticateToken middleware passed)
+                res.json({
+                    success: true,
+                    message: 'Token is valid',
+                    user: {
+                        id: req.user.id,
+                        email: req.user.email,
+                        name: req.user.name
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Token verification error:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Token verification failed'
+                });
+            }
+        });
+
+        // Logout endpoint
+        app.post("/auth/logout", authenticateToken, async (req, res) => {
+            try {
+                console.log('\n🚪 LOGOUT API CALLED 🚪');
+                console.log('🆔 Request ID:', req.requestId);
+                console.log('📍 Client IP:', req.ip);
+                console.log('👤 User ID:', req.user?.id);
+                console.log('⏰ Timestamp:', new Date().toISOString());
+
+                // In a real application, you might want to blacklist the token
+                // For now, we'll just return success as the client will remove the token
+                res.json({
+                    success: true,
+                    message: 'Logged out successfully'
+                });
+            } catch (error) {
+                console.error('❌ Logout error:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Logout failed'
+                });
+            }
         });
 
         // ==================== JOB MANAGEMENT ROUTES ====================
