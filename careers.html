@@ -197,9 +197,6 @@
       color: white !important;
     }
 
-    .job-card .accordion-button:not(.collapsed) .job-icon-letter {
-      border: 2px solid white;
-    }
 
     .job-card .accordion-button:not(.collapsed) .job-title {
       color: white !important;
@@ -225,20 +222,7 @@
       filter: brightness(0) invert(1);
     }
 
-    /* Job Icon with First Letter */
-    .job-icon-letter {
-      width: 50px;
-      height: 50px;
-      background-color: #051C3B;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
+    /* Job Icon with First Letter - Removed as job titles are more readable without circular letter icons */
 
     .job-title {
       color: #051C3B;
@@ -331,7 +315,8 @@
                 </a>
 
                 <!-- Back to Home Button -->
-                <a href="index.html" class="btn btn-outline-light ms-auto">← Back to Home</a>
+                <a href="index.html" class="btn btn-outline-light ms-auto d-none d-md-inline-block">← Back to Home</a>
+                <a href="index.html" class="btn btn-outline-light ms-auto d-md-none btn-sm" style="min-height: auto !important;">← Back</a>
             </div>
         </nav>
     </header>
@@ -341,7 +326,7 @@
     <div class=" p-0">
         <!-- Careers Section -->
         <div class="careers-section p-4" id="careersSection" style="background-color: white; margin-top: 50px;">
-            <div class="container">
+            <div class="container-fluid">
                 <div class="row m-0">
                     <div class="col-12">
                         <h2 class="fw-bold text-center" style="color: #051C3B;">Current Openings</h2>
@@ -461,7 +446,7 @@
         function createJobCard(job, index) {
             const description = formatJobDescription(job.description);
             const isFirst = index === 0;
-            const firstLetter = job.title.charAt(0).toUpperCase();
+            // Removed first letter display - job titles are more readable without the circular letter icon
             
             return `
                 <div class="accordion-item job-card">
@@ -470,9 +455,6 @@
                             data-bs-target="#collapse${index}" aria-expanded="${isFirst ? 'true' : 'false'}" aria-controls="collapse${index}">
                             
                             <div class="career-item d-flex align-items-start w-100">
-                                <div class="career-icon me-3 flex-shrink-0">
-                                    <div class="job-icon-letter">${firstLetter}</div>
-                                </div>
                                 
                                 <div class="career-content">
                                     <div class="career-title fw-semibold job-title">
