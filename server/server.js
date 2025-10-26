@@ -513,6 +513,89 @@ async function startServer() {
             }
         });
 
+        // Resend OTP route
+        app.post("/auth/resend-otp", authLimiter, async (req, res) => {
+            console.log("\n🔥🔥🔥 RESEND OTP API CALLED 🔥🔥🔥");
+            console.log("🆔 Request ID:", req.requestId);
+            console.log("📍 Client IP:", req.ip);
+            console.log("⏰ Timestamp:", new Date().toISOString());
+            console.log("📦 Full payload:", JSON.stringify(req.body, null, 2));
+            console.log("🔗 Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+            
+            try {
+                const { userId } = sanitizeInput(req.body);
+
+                if (!userId) {
+                    console.log("❌ Resend OTP failed: Missing userId");
+                    return res.status(400).json({
+                        success: false,
+                        message: 'User ID is required'
+                    });
+                }
+
+                // Find the user
+                const user = await User.findById(userId);
+                if (!user) {
+                    console.log("❌ Resend OTP failed: User not found");
+                    return res.status(404).json({
+                        success: false,
+                        message: 'User not found'
+                    });
+                }
+
+                console.log("🔍 Resending OTPs for user:", user.email);
+
+                // Generate new OTPs for user and admin
+                console.log("🔐 Generating new OTPs...");
+                const userOTP = await generateRegistrationOTP(user._id, user.email, 'user');
+                const adminOTP = await generateRegistrationOTP(user._id, user.email, 'admin');
+                console.log("✅ New OTPs generated successfully");
+                console.log("🔑 User OTP:", userOTP);
+                console.log("🔑 Admin OTP:", adminOTP);
+
+                // Send user OTP email
+                try {
+                    await transporter.sendMail({
+                        from: `"TruPath Services" <${process.env.MAIL_USER}>`,
+                        to: user.email,
+                        subject: "Registration Verification - New OTP - TruPath Services",
+                        html: getUserOTPEmailTemplate(user.name, userOTP)
+                    });
+                    console.log("📧 User OTP email resent to:", user.email);
+                } catch (emailError) {
+                    console.error("❌ Error sending user OTP email:", emailError);
+                }
+
+                // Send admin OTP email
+                try {
+                    await transporter.sendMail({
+                        from: `"TruPath Services" <${process.env.MAIL_USER}>`,
+                        to: 'trupathservices@gmail.com',
+                        subject: "New User Registration - Admin Verification Required (Resent)",
+                        html: getAdminOTPEmailTemplate(user.name, user.email, adminOTP)
+                    });
+                    console.log("📧 Admin OTP email resent to trupathservices@gmail.com");
+                } catch (emailError) {
+                    console.error("❌ Error sending admin OTP email:", emailError);
+                }
+
+                console.log("📊 Response Status: 200 - OK");
+                res.json({
+                    success: true,
+                    message: "OTPs have been resent to your email and admin email"
+                });
+
+            } catch (error) {
+                console.error("❌ Resend OTP error:", error);
+                console.log("📊 Response Status: 400 - Bad Request");
+                console.log("💬 Error message:", error.message);
+                res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        });
+
         // Reset Password route
         app.post("/auth/reset-password", passwordResetLimiter, async (req, res) => {
             console.log("\n🔥🔥🔥 RESET PASSWORD API CALLED 🔥🔥🔥");
