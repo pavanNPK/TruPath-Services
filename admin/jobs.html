@@ -722,12 +722,26 @@
     .pagination-info {
       color: #666;
       font-size: 14px;
+      font-weight: 500;
     }
 
     .pagination-controls {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+
+    .pagination-pages {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .pagination-nav-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
     }
 
     .pagination-btn {
@@ -755,11 +769,6 @@
       cursor: not-allowed;
     }
 
-    .pagination-pages {
-      display: flex;
-      gap: 5px;
-    }
-
     .page-number {
       padding: 8px 12px;
       border: 1px solid #DDDDDD;
@@ -771,6 +780,7 @@
       transition: all 0.3s ease;
       min-width: 40px;
       text-align: center;
+      margin: 2px;
     }
 
     .page-number:hover {
@@ -838,22 +848,32 @@
       }
       
       .search-container {
-        flex-direction: column;
-        gap: 15px;
+        flex-direction: row;
+        gap: 10px;
         width: 100%;
-        max-width: 400px;
+        max-width: 100%;
+        flex-wrap: wrap;
       }
       
       .search-input {
         width: 100%;
+        min-width: 200px;
+        flex: 1;
       }
 
       .jobs-per-page-select {
-        width: 100%;
+        min-width: 120px;
+        flex: 0 0 auto;
+      }
+
+      .status-filter {
+        min-width: 120px;
+        flex: 0 0 auto;
       }
       
       .post-job-btn {
-        width: 100%;
+        min-width: 140px;
+        flex: 0 0 auto;
         justify-content: center;
       }
       
@@ -875,10 +895,61 @@
       .pagination-controls {
         justify-content: center;
         flex-wrap: wrap;
+        flex-direction: column;
+        gap: 10px;
       }
       
       .pagination-pages {
         order: -1;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .pagination-btn {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+    }
+
+    /* Mobile layout for screens below 400px */
+    @media (max-width: 400px) {
+      .search-container {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .search-input,
+      .jobs-per-page-select,
+      .status-filter,
+      .post-job-btn {
+        width: 100%;
+        min-width: auto;
+      }
+      
+      .pagination-container {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      
+      .pagination-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .pagination-pages {
+        order: -1;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .pagination-btn {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
       }
     }
   </style>
@@ -923,7 +994,7 @@
         <div class="content-header-right">
           <div class="search-container">
             <input type="text" class="search-input" placeholder="search by name" id="searchInput">
-            <select class="jobs-per-page-select" id="statusFilter">
+            <select class="jobs-per-page-select status-filter" id="statusFilter">
               <option value="">All Status</option>
               <option value="open">Open Jobs</option>
               <option value="closed">Closed Jobs</option>
@@ -1094,10 +1165,24 @@
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-      checkAuthentication();
-      setupEventListeners();
-      initializeQuillEditor();
-      setupTokenMonitoring();
+      try {
+        checkAuthentication();
+        setupEventListeners();
+        initializeQuillEditor();
+        setupTokenMonitoring();
+      } catch (error) {
+        console.error('Error initializing admin page:', error);
+      }
+    });
+
+    // Add global error handler to catch any unhandled errors
+    window.addEventListener('error', function(event) {
+      console.error('Global error caught:', event.error);
+      // Don't let external script errors break our functionality
+      if (event.filename && event.filename.includes('share-modal.js')) {
+        event.preventDefault();
+        return false;
+      }
     });
 
     // Check if user is authenticated
@@ -1929,65 +2014,84 @@
 
     // Update pagination UI
     function updatePagination() {
-      const paginationContainer = document.getElementById('paginationContainer');
-      const paginationInfo = document.getElementById('paginationInfo');
-      const paginationPages = document.getElementById('paginationPages');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
+      try {
+        const paginationContainer = document.getElementById('paginationContainer');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationPages = document.getElementById('paginationPages');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
 
-      // Always show pagination container
-      paginationContainer.style.display = 'flex';
+        if (!paginationContainer || !paginationInfo || !paginationPages || !prevBtn || !nextBtn) {
+          console.error('Pagination elements not found');
+          return;
+        }
 
-      // Update pagination info
-      const startItem = (currentPage - 1) * jobsPerPage + 1;
-      const endItem = Math.min(currentPage * jobsPerPage, totalJobs);
-      paginationInfo.textContent = `Showing ${startItem} to ${endItem} of ${totalJobs} jobs`;
+        // Always show pagination container
+        paginationContainer.style.display = 'flex';
 
-      // Update prev/next buttons
-      prevBtn.disabled = currentPage === 1 || totalPages <= 1;
-      nextBtn.disabled = currentPage === totalPages || totalPages <= 1;
+        // Update pagination info
+        const startItem = (currentPage - 1) * jobsPerPage + 1;
+        const endItem = Math.min(currentPage * jobsPerPage, totalJobs);
+        paginationInfo.textContent = `Showing ${startItem} to ${endItem} of ${totalJobs} jobs`;
 
-      // Generate page numbers
-      paginationPages.innerHTML = '';
-      
-      if (totalPages <= 1) {
-        // Show just the current page when there's only one page
-        const pageBtn = document.createElement('button');
-        pageBtn.className = 'page-number active';
-        pageBtn.textContent = '1';
-        pageBtn.disabled = true;
-        paginationPages.appendChild(pageBtn);
-      } else {
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        // Update prev/next buttons
+        prevBtn.disabled = currentPage === 1 || totalPages <= 1;
+        nextBtn.disabled = currentPage === totalPages || totalPages <= 1;
+
+        // Generate page numbers
+        paginationPages.innerHTML = '';
         
-        if (endPage - startPage + 1 < maxVisiblePages) {
-          startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
+        if (totalPages <= 1) {
+          // Show just the current page when there's only one page
           const pageBtn = document.createElement('button');
-          pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
-          pageBtn.textContent = i;
-          pageBtn.onclick = () => goToPage(i);
+          pageBtn.className = 'page-number active';
+          pageBtn.textContent = '1';
+          pageBtn.disabled = true;
           paginationPages.appendChild(pageBtn);
+        } else {
+          const maxVisiblePages = 5;
+          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+          
+          if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+          }
+          
+          for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => goToPage(i);
+            paginationPages.appendChild(pageBtn);
+          }
         }
+      } catch (error) {
+        console.error('Error updating pagination:', error);
       }
     }
 
     // Change page
     function changePage(direction) {
-      const newPage = currentPage + direction;
-      if (newPage >= 1 && newPage <= totalPages) {
-        goToPage(newPage);
+      try {
+        const newPage = currentPage + direction;
+        if (newPage >= 1 && newPage <= totalPages) {
+          goToPage(newPage);
+        }
+      } catch (error) {
+        console.error('Error changing page:', error);
       }
     }
 
     // Go to specific page
     function goToPage(page) {
-      currentPage = page;
-      loadJobs();
+      try {
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          loadJobs();
+        }
+      } catch (error) {
+        console.error('Error going to page:', error);
+      }
     }
 
     // Test function to add sample jobs (for testing pagination)

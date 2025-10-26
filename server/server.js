@@ -485,7 +485,7 @@ async function startServer() {
 
                 // Send password reset email
                 console.log("📧 Sending password reset email...");
-                const resetUrl = `${process.env.APP_HOST || 'https://api.trupathservices.com'}/admin/reset-password.html`;
+                const resetUrl = 'https://trupathservices.com/admin/reset-password.html';
                 console.log("🔗 Reset URL:", resetUrl);
                 
                 await transporter.sendMail({

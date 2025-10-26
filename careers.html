@@ -379,6 +379,12 @@
             border: 1px solid #e0e0e0;
         }
 
+        .pagination-container .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .pagination-info {
             color: #666;
             font-size: 14px;
@@ -460,20 +466,63 @@
             color: white;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        /* Default horizontal layout for screens above 400px */
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .pagination-pages {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pagination-nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .page-number {
+            margin: 2px;
+        }
+
+        /* Better spacing for pagination info */
+        .pagination-info {
+            font-size: 16px;
+            font-weight: 500;
+            color: #051C3B;
+        }
+
+        /* Mobile layout for screens below 400px */
+        @media (max-width: 400px) {
             .pagination-container .row {
                 flex-direction: column;
                 gap: 15px;
+                text-align: center;
             }
 
             .pagination-controls {
                 justify-content: center;
                 flex-wrap: wrap;
+                flex-direction: column;
+                gap: 10px;
             }
 
             .pagination-pages {
                 order: -1;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .pagination-btn {
+                width: 100%;
+                max-width: 200px;
+                margin: 0 auto;
             }
         }
     </style>
@@ -594,7 +643,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="pagination-controls d-flex justify-content-end" id="paginationControls">
+                                    <div class="pagination-controls" id="paginationControls">
                                         <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
                                             <span>←</span> Previous
                                         </button>
@@ -933,16 +982,26 @@
 
         // Change page
         function changePage(direction) {
-            const newPage = currentPage + direction;
-            if (newPage >= 1 && newPage <= totalPages) {
-                goToPage(newPage);
+            try {
+                const newPage = currentPage + direction;
+                if (newPage >= 1 && newPage <= totalPages) {
+                    goToPage(newPage);
+                }
+            } catch (error) {
+                console.error('Error changing page:', error);
             }
         }
 
         // Go to specific page
         function goToPage(page) {
-            currentPage = page;
-            loadJobs();
+            try {
+                if (page >= 1 && page <= totalPages) {
+                    currentPage = page;
+                    loadJobs();
+                }
+            } catch (error) {
+                console.error('Error going to page:', error);
+            }
         }
 
         // Clear all filters
@@ -992,8 +1051,31 @@
 
         // Load jobs when page loads
         document.addEventListener('DOMContentLoaded', function () {
-            setupEventListeners();
-            loadJobs();
+            try {
+                setupEventListeners();
+                loadJobs();
+            } catch (error) {
+                console.error('Error initializing careers page:', error);
+                // Show error state if initialization fails
+                const loader = document.getElementById('careersLoader');
+                const errorDiv = document.getElementById('careersError');
+                if (loader) loader.style.display = 'none';
+                if (errorDiv) {
+                    errorDiv.querySelector('h3').textContent = 'Page Error';
+                    errorDiv.querySelector('p').textContent = 'There was an error loading the careers page. Please refresh the page and try again.';
+                    errorDiv.style.display = 'block';
+                }
+            }
+        });
+
+        // Add global error handler to catch any unhandled errors
+        window.addEventListener('error', function(event) {
+            console.error('Global error caught:', event.error);
+            // Don't let external script errors break our functionality
+            if (event.filename && event.filename.includes('share-modal.js')) {
+                event.preventDefault();
+                return false;
+            }
         });
 
         // ==================== Scroll to Top Button ====================
