@@ -1093,9 +1093,9 @@ async function startServer() {
         const host = process.env.APP_HOST || 'https://trupathservices.com';
 
         app.listen(port, () => {
-            console.log('\n' + '🔥'.repeat(60));
+            console.log('\n' + '🔥'.repeat(10));
             console.log('🚀 TRUPATH SERVICES API SERVER STARTED');
-            console.log('🔥'.repeat(60));
+            console.log('🔥'.repeat(10));
             console.log(`🌐 Server running at ${host}/welcome`);
             console.log(`🔐 Authentication endpoints available at ${host}/auth/*`);
             console.log(`👑 Admin endpoints available at ${host}/admin/*`);
