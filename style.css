@@ -829,7 +829,7 @@ body {
 }
 
 .contact-logo-img {
-  width: 120px;
+  width: 80px;
   height: auto;
   transition: transform 0.3s ease;
 }
@@ -1020,10 +1020,6 @@ body {
   .contact-logo {
     order: 0; /* logo moves top */
   }
-
-  .contact-logo-img {
-    margin-bottom: 1.5rem;
-  }
 }
 
 .grayText {
@@ -1048,7 +1044,7 @@ body {
   color: white;
 }
 .contact-logo-img {
-  width: 120px;
+  width: 80px;
   height: auto;
   transition: transform 0.3s ease;
   rotate: 180deg;
