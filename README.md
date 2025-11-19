@@ -261,7 +261,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 **TruPath Services**
-- 📧 Email: info@trupathservices.com
+- 📧 Email: hr@trupathservices.com
 - 📱 Phone: +91-9391481020, +91-9666178974
 - 🌐 Website: https://trupathservices.com
 - 💼 LinkedIn: [TruPath Services](https://www.linkedin.com/company/trupathservices)
